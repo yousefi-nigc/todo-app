@@ -1,668 +1,406 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#37474F">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>دفترچه کارها</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2c3e44">
+<link rel="icon" href="icon-192.png">
 <style>
-  :root{
-    --paper:#FDF6E3;
-    --line:#CFD8E3;
-    --margin-red:#E57373;
-    --cover:#37474F;
-    --ink:#2B2B2B;
-    --muted:#7A6E58;
-    --green:#2E7D32;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;height:100%}
-  body{
-    background:#20282C;
-    font-family:'Vazirmatn',Tahoma,'Segoe UI',sans-serif;
-    color:var(--ink);
-    overscroll-behavior:none;
-  }
-  #app{max-width:520px;margin:0 auto;min-height:100%;background:var(--paper);
-       box-shadow:0 0 24px rgba(0,0,0,.5);display:flex;flex-direction:column}
-
-  header{background:var(--cover);color:#fff;padding:12px 14px;
-         padding-top:calc(12px + env(safe-area-inset-top));
-         display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
-  header h1{font-size:17px;margin:0;flex:1;font-weight:700}
-  header .today{font-size:12px;opacity:.85}
-  .ibtn{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;
-        width:36px;height:36px;font-size:17px;cursor:pointer}
-  .ibtn:active{background:rgba(255,255,255,.3)}
-
-  main{position:relative;flex:1;padding:10px 0 90px}
-  main::before{content:"";position:absolute;inset:0;pointer-events:none;
-    background:repeating-linear-gradient(to bottom,transparent 0 43px,var(--line) 43px 44px)}
-  main::after{content:"";position:absolute;top:0;bottom:0;right:44px;width:1px;
-    background:var(--margin-red);opacity:.55;pointer-events:none}
-  .wrap{position:relative;z-index:1}
-
-  .adder{display:flex;gap:6px;padding:8px 12px 12px 12px;align-items:center}
-  .adder input[type=text]{flex:1;height:40px;border:1px solid #D8CBAE;border-radius:10px;
-    background:#fffdf5;padding:0 10px;font:inherit;color:var(--ink)}
-  .adder select{height:40px;border:1px solid #D8CBAE;border-radius:10px;background:#fffdf5;
-    font:inherit;font-weight:700;padding:0 4px;color:var(--ink)}
-  .addbtn{height:40px;min-width:44px;border:0;border-radius:10px;background:var(--cover);
-    color:#fff;font-size:20px;font-weight:700;cursor:pointer}
-
-  ul.tasks{list-style:none;margin:0;padding:0}
-  li.task{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 12px 0 12px;
-          position:relative}
-  li.task .chk{width:22px;height:22px;flex:0 0 22px;border:2px solid var(--muted);
-    border-radius:6px;background:transparent;display:grid;place-items:center;
-    cursor:pointer;font-size:15px;color:var(--green);line-height:1;padding:0}
-  li.task.done .txt{text-decoration:line-through;opacity:.5}
-  .pri{flex:0 0 24px;height:24px;border-radius:6px;display:grid;place-items:center;
-       font-weight:800;font-size:13px;color:#fff;cursor:pointer;border:0;font-family:inherit}
-  .A{background:#C62828}.B{background:#EF6C00}.C{background:#F9A825;color:#3b3b3b}
-  .D{background:#2E7D32}.E{background:#546E7A}
-  .txt{flex:1;font-size:15px;line-height:1.3;word-break:break-word;padding:4px 0;
-       border:0;background:transparent;font:inherit;color:inherit;outline:none}
-  .meta{font-size:11px;color:var(--muted);flex:0 0 auto}
-  .del{background:none;border:0;color:#B0A38A;font-size:16px;cursor:pointer;padding:4px}
-  .subcount{font-size:11px;background:#E8DFC6;border-radius:8px;padding:1px 6px;color:var(--muted)}
-
-  .subpanel{display:none;padding:2px 12px 10px 46px;background:rgba(255,255,255,.45)}
-  .subpanel.open{display:block}
-  .subpanel ul{list-style:none;margin:0;padding:0}
-  .subpanel li{display:flex;align-items:center;gap:8px;min-height:36px}
-  .subpanel .chk{width:18px;height:18px;flex:0 0 18px;font-size:12px;border:2px solid var(--muted);
-    border-radius:5px;background:transparent;display:grid;place-items:center;color:var(--green);
-    cursor:pointer;padding:0;line-height:1}
-  .subpanel .txt{font-size:14px}
-  .subadd{display:flex;gap:6px;margin-top:6px}
-  .subadd input{flex:1;height:34px;border:1px dashed #C9B896;border-radius:8px;
-    background:#fffdf7;padding:0 8px;font:inherit;font-size:14px;color:var(--ink)}
-  .subadd button{height:34px;border:0;border-radius:8px;background:var(--muted);color:#fff;
-    padding:0 12px;cursor:pointer;font:inherit}
-  .hint{font-size:11px;color:var(--muted);text-align:center;padding:6px}
-
-  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50;
-         align-items:flex-end;justify-content:center}
-  .sheet.open{display:flex}
-  .sheet .card{background:var(--paper);width:100%;max-width:520px;border-radius:16px 16px 0 0;
-    padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
-  .cal-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .cal-head .t{flex:1;text-align:center;font-weight:800}
-  .cal-head button{width:34px;height:34px;border:0;border-radius:9px;background:#E8DFC6;
-    font-size:16px;cursor:pointer;color:var(--ink)}
-  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .grid .wd{text-align:center;font-size:11px;color:var(--muted);padding:4px 0;font-weight:700}
-  .day{aspect-ratio:1;border:0;border-radius:9px;background:#F3EAD3;font:inherit;font-size:14px;
-       color:var(--ink);cursor:pointer;position:relative}
-  .day.empty{background:transparent;cursor:default}
-  .day.today{outline:2px solid var(--margin-red)}
-  .day.sel{background:var(--cover);color:#fff}
-  .day .dot{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
-    width:5px;height:5px;border-radius:50%;background:var(--green)}
-  .row{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
-  .row label{font-size:13px;color:var(--muted)}
-  .btn{border:0;border-radius:10px;background:var(--cover);color:#fff;padding:9px 14px;
-       font:inherit;cursor:pointer}
-  .btn.ghost{background:#E8DFC6;color:var(--ink)}
-  input[type=color]{width:44px;height:34px;border:1px solid #D8CBAE;border-radius:8px;
-    background:#fffdf5;padding:2px}
-  .swatches{display:flex;gap:6px;flex-wrap:wrap}
-  .sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #C9B896;cursor:pointer}
-  .filterbar{display:flex;gap:6px;padding:0 12px 8px;align-items:center;flex-wrap:wrap}
-  .chip{border:1px solid #D8CBAE;background:#fffdf5;border-radius:20px;padding:4px 10px;
-        font-size:12px;cursor:pointer;color:var(--ink);font-family:inherit}
-  .chip.on{background:var(--cover);color:#fff;border-color:var(--cover)}
+  :root{ --bg:#2c3e44; --card:#fdf6e8; --line:#e6d9bf; --ink:#22343a; --accent:#2c3e44; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+        font-family:Tahoma,"Segoe UI",sans-serif; }
+  #app{ max-width:520px; margin:0 auto; background:var(--card); min-height:100vh; }
+  header{ background:var(--accent); color:#fff; padding:12px 14px;
+          display:flex; align-items:center; gap:8px; }
+  header h1{ font-size:17px; margin:0; margin-inline-start:auto; }
+  .ico{ background:rgba(255,255,255,.12); border:0; color:#fff; font-size:17px;
+        width:38px; height:38px; border-radius:10px; cursor:pointer; }
+  .bar{ display:flex; gap:8px; padding:12px; }
+  .bar input[type=text]{ flex:1; padding:10px; border:1px solid var(--line);
+        border-radius:10px; background:#fffdf6; font:inherit; }
+  .bar select{ padding:10px; border:1px solid var(--line); border-radius:10px;
+        background:#fffdf6; font:inherit; }
+  .add{ background:var(--accent); color:#fff; border:0; border-radius:10px;
+        width:46px; font-size:22px; cursor:pointer; }
+  .filters{ ;
+        border-radius:10px; background:#fffdf6; font:inherit; }
+  .bar select{ padding:10px; border:1px solid var(--line); border-radius:10px;
+        background:#fffdf6; font:inherit; }
+  .add{ background:var(--accent); color:#fff; border:0; border-radius:10px;
+        width:46px; font-size:22px; cursor:pointer; }
+  .filters{ lor:var(--accent); }
+  .hint{ text-align:center; font-size:12px; color:#8a7f6a; padding:6px 12px 12px; }
+  ul{ list-style:none; margin:0; padding:0; }
+  li{ border-top:1px solid var(--line); padding:10px 12px; }
+  .row{ display:flex; align-items:center; gap:10px; }
+  .row input[type=checkbox]{ width:20px; height:20px; flex:none; }
+  .txt{ flex:1; cursor:pointer; word-break:break-word; }
+  .txt.done{ text-decoration:line-through; opacity:.5; }
+  .meta{ font-size:11px; color:#8a7f6a; display:block; margin-top:3px; }
+  .p-A{ border-inline-end:4px solid #c0392b; }
+  .p-B{ border-inline-end:4px solid #e0a900; }
+  .p-C{ border-inline-end:4px solid #7f8c8d; }
+  .del{ background:none; border:0; color:#c0392b; font-size:16px; cursor:pointer; }
+  .subs{ margin:8px 0 0; padding-inline-start:30px; }
+  .subs li{ border:0; padding:4px 0; }
+  .subadd{ display:flex; gap:6px; margin-top:6px; padding-inline-start:30px; }
+  .subadd input{ flex:1; padding:6px; border:1px solid var(--line);
+        border-radius:8px; background:#fffdf6; font:inherit; }
+  .subadd button{ border:0; background:var(--accent); color:#fff;
+        border-radius:8px; padding:0 12px; cursor:pointer; }
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none;
+        align-items:center; justify-content:center; padding:16px; }
+  .modal.open{ display:flex; }
+  .box{ background:var(--card); border-radius:14px; padding:16px; width:100%;
+        max-width:360px; }
+  .box h2{ margin:0 0 12px; font-size:16px; }
+  .box button{ display:block; width:100%; margin-bottom:8px; padding:10px;
+        border:1px solid var(--line); background:#fffdf6; border-radius:10px;
+        font:inherit; cursor:pointer; }
+  .empty{ text-align:center; color:#8a7f6a; padding:30px 12px; }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div style="flex:1">
-      <h1>دفترچه کارها</h1>
-      <div class="today" id="todayLbl">—</div>
-    </div>
-    <button class="ibtn" id="btnCal" title="تقویم">📅</button>
-    <button class="ibtn" id="btnSet" title="تنظیمات">⚙️</button>
+    <button class="ico" id="btnSet" aria-label="تنظیمات">&#9881;</button>
+    <button class="ico" id="btnCal" aria-label="تاریخ امروز">&#128197;</button>
+    <h1>دفترچه کارها</h1>
   </header>
 
-  <div class="adder">
-    <select id="newPri" title="اولویت">
-      <option>A</option><option>B</option><option selected>C</option><option>D</option><option>E</option>
+  <div class="bar">
+    <button class="add" id="btnAdd" aria-label="افزودن کار">+</button>
+    <input type="text" id="newTxt" placeholder="کار جدید...">
+    <select id="newPrio" aria-label="اولویت">
+      <option value="B">B</option>
+      <option value="A">A</option>
+      <option value="C">C</option>
     </select>
-    <input type="text" id="newTxt" placeholder="کار جدید…" autocomplete="off">
-    <button class="addbtn" id="btnAdd">+</button>
   </div>
 
-  <div class="filterbar">
-    <button class="chip on" data-f="all">همه</button>
-    <button class="chip" data-f="open">انجام‌نشده</button>
-    <button class="chip" data-f="done">انجام‌شده</button>
-    <button class="chip" id="dateChip" style="display:none"></button>
+  <div class="filters">
+    <button data-f="all" class="on">همه</button>
+    <button data-f="open">انجام‌نشده</button>
+    <button data-f="done">انجام‌شده</button>
   </div>
 
-  <main>
-    <div class="wrap"><ul class="tasks" id="list"></ul></div>
-    <div class="hint">برای دیدن ریزکارها، روی متن کار <b>دو بار</b> ضربه بزنید</div>
-  </main>
+  <p class="hint">برای دیدن ریزکارها، روی متن کار <b>دو بار</b> ضربه بزنید</p>
+  <ul id="list"></ul>
 </div>
 
-<!-- تقویم -->
-<div class="sheet" id="calSheet">
-  <div class="card">
-    <div class="cal-head">
-      <button id="pm">‹</button>
-      <div class="t" id="calTitle"></div>
-      <button id="nm">›</button>
-    </div>
-    <div class="grid" id="calGrid"></div>
-    <div class="row">
-      <button class="btn" id="calAssign">ثبت به‌عنوان سرسید کار انتخابی</button>
-      <button class="btn ghost" id="calFilter">نمایش کارهای این روز</button>
-    </div>
-    <div class="row">
-      <button class="btn ghost" id="calToday">امروز</button>
-      <button class="btn ghost" id="calClose">بستن</button>
-    </div>
-  </div>
-</div>
-
-<!-- تنظیمات -->
-<div class="sheet" id="setSheet">
-  <div class="card">
-    <b>تنظیمات نمایش</b>
-    <div class="row">
-      <label for="inkPick">رنگ فونت:</label>
-      <input type="color" id="inkPick" value="#2B2B2B">
-    </div>
-    <div class="row swatches" id="swatches"></div>
-    <div class="row">
-      <label for="fsize">اندازه فونت:</label>
-      <input type="range" id="fsize" min="13" max="20" step="1" value="15" style="flex:1">
-    </div>
-    <div class="row">
-      <button class="btn ghost" id="exportBtn">خروجی پشتیبان (JSON)</button>
-      <button class="btn ghost" id="importBtn">بازیابی از فایل</button>
-      <input type="file" id="importFile" accept="application/json" hidden>
-    </div>
-    <div class="row">
-      <button class="btn ghost" id="setClose">بستن</button>
-    </div>
+<div class="modal" id="mSet">
+  <div class="box">
+    <h2>تنظیمات</h2>
+    <button id="btnExport">دریافت پشتیبان (JSON)</button>
+    <button id="btnImportPick">بازگردانی از فایل</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    <button id="btnClear">پاک کردن همه کارها</button>
+    <button id="btnCloseSet">بستن</button>
   </div>
 </div>
 
 <script>
-/* ==================== تقویم شمسی (تبدیل دقیق) ==================== */
-function div(a,b){return ~~(a/b);}
-
-function jalCal(jy){
-  var breaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,
-              1635,2060,2097,2192,2262,2324,2394,2456,3178];
-  var bl=breaks.length, gy=jy+621, leapJ=-14, jp=breaks[0];
-  var jm, jump=0, leap, n, i;
-
-  if(jy<jp||jy>=breaks[bl-1]) throw new Error('سال شمسی نامعتبر: '+jy);
-
-  for(i=1;i<bl;i++){
-    jm=breaks[i];
-    jump=jm-jp;
-    if(jy<jm) break;
-    leapJ=leapJ+div(jump,33)*8+div(jump%33,4);
-    jp=jm;
-  }
-  n=jy-jp;
-
-  leapJ=leapJ+div(n,33)*8+div(n%33+3,4);
-  if(jump%33===4 && jump-n===4) leapJ++;
-
-  var leapG=div(gy,4)-div((div(gy,100)+1)*3,4)-150;
-  var march=20+leapJ-leapG;
-
-  if(jump-n<6) n=n-jump+div(jump+4,33)*33;
-
-  leap=((n+1)%33-1)%4;
-  if(leap===-1) leap=4;
-
-  return {leap:leap, gy:gy, march:march};
-}
-
-function g2d(gy,gm,gd){
-  var d=div((gy+div(gm-8,6)+100100)*1461,4)+div(153*((gm+9)%12)+2,5)+gd-34840408;
-  return d-div(div(gy+100100+div(gm-8,6),100)*3,4)+752;
-}
-function d2g(jdn){
-  var j=4*jdn+139361631; j=j+div(div(4*jdn+183187720,146097)*3,4)*4-3908;
-  var i=div(j%1461,4)*5+308, gd=div(i%153,5)+1, gm=(div(i,153)%12)+1, gy=div(j,1461)-100100+div(8-gm,6);
-  return {gy:gy,gm:gm,gd:gd};
-}
-fu097)*3,4)*4-3908;
-  var i=div(j%1461,4)*5+308, gd=div(i%153,5)+1, gm=(div(i,153)%12)+1, gy=div(j,1461)-100100+div(8-gm,6);
-  return {gy:gy,gm:gm,gd:gd};
-}
-fujy), jdn1f=g2d(gy,3,r.march), k=jdn-jdn1f, jm, jd;
-  if(k>=0){
-    if(k<=185){ return {jy:jy, jm:1+div(k,31), jd:(k%31)+1}; }
-    k-=186;
-  } else {
-    jy--; k+=179;
-    if(r.leap===1) k++;
-  }
-  jm=7+div(k,30); jd=(k%30)+1;
-  return {jy:jy,jm:jm,jd:jd};
-}
-function jMonthLen(jy,jm){
-  if(jm<=6) return 31;
-  if(jm<=11) return 30;
-  return jalCal(jy).leap===0?30:29;
-}
-function j2g(jy,jm,jd){return d2g(j2d(jy,jm,jd));}
-function g2j(gy,gm,gd){return d2j(g2d(gy,gm,gd));}
-function todayJ(){var n=new Date();return g2j(n.getFullYear(),n.getMonth()+1,n.getDate());}
-
-var J_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
-var J_WD=['ش','ی','د','س','چ','پ','ج'];
-var J_WD_NAMES=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
-
-function fmtNum(n,len){
-  n=String(n);
-  while(len&&n.length<len) n='0'+n;
-  return n.replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});
-}
-function pad2(n){ n=String(n); return n.length<2?'0'+n:n; }
-function keyOf(j){ return j.jy+'-'+pad2(j.jm)+'-'+pad2(j.jd); }
-function labelOf(key){
-  if(!key) return '';
-  var p=key.split('-').map(Number);
-  return fmtNum(p[2])+' '+J_MONTHS[p[1]-1]+' '+fmtNum(p[0]);
-}
-/* شنبه = ستون ۰ */
-function colOf(jy,jm,jd){
-  var g=j2g(jy,jm,jd);
-  return (new Date(g.gy,g.gm-1,g.gd).getDay()+1)%7;
-}
-function wdName(j){ return J_WD_NAMES[colOf(j.jy,j.jm,j.jd)]; }
-
-/* ==================== ذخیره‌سازی ==================== */
-var KEY='notebook_todo_v1';
-var state={tasks:[],ink:'#2B2B2B',fsize:15};
-
-function load(){
-  try{
-    var raw=localStorage.getItem(KEY);
-    if(raw){
-      var o=JSON.parse(raw);
-      if(o&&Array.isArray(o.tasks)) state=Object.assign(state,o);
-    }
-  }catch(e){ console.warn('load failed',e); }
-}
-function save(){
-  try{ localStorage.setItem(KEY,JSON.stringify(state)); }
-  catch(e){ alert('ذخیره ناموفق بود: '+e.message); }
-}
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-
-/* ==================== وضعیت رابط ==================== */
-var filter='all', dateFilter=null, selectedId=null, openSubs={};
-var cal={y:0,m:0,sel:null};
-
-var $=function(s){return document.querySelector(s);};
-var list=$('#list');
-
-/* ==================== رندر ==================== */
-function applyTheme(){
-  document.documentElement.style.setProperty('--ink',state.ink);
-  document.querySelectorAll('.txt').forEach(function(e){ e.style.fontSize=state.fsize+'px'; });
-  $('#inkPick').value=state.ink;
-  $('#fsize').value=state.fsize;
-}
-
-function visibleTasks(){
-  return state.tasks.filter(function(t){
-    if(filter==='open'&&t.done) return false;
-    if(filter==='done'&&!t.done) return false;
-    if(dateFilter&&t.due!==dateFilter) return false;
-    return true;
-  }).sort(function(a,b){
-    if(a.done!==b.done) return a.done?1:-1;
-    if(a.pri!==b.pri) return a.pri<b.pri?-1:1;
-    return a.created-b.created;
-  });
-}
-
-function draw(){
-  list.innerHTML='';
-  var arr=visibleTasks();
-  if(!arr.length){
-    var li=document.createElement('li');
-    li.className='task';
-    li.style.color='var(--muted)';
-    li.textContent='کاری برای نمایش نیست.';
-    list.appendChild(li);
-  }
-  arr.forEach(function(t){ list.appendChild(taskNode(t)); });
-  applyTheme();
-}
-
-function taskNode(t){
-  var li=document.createElement('li');
-  li.className='task'+(t.done?' done':'');
-  li.dataset.id=t.id;
-
-  var chk=document.createElement('button');
-  chk.className='chk';
-  chk.textContent=t.done?'✓':'';
-  chk.setAttribute('aria-label','تیک انجام شد');
-  chk.setAttribute('aria-pressed',t.done?'true':'false');
-  chk.onclick=function(){ t.done=!t.done; save(); draw(); };
-
-  var pri=document.createElement('button');
-  pri.className='pri '+t.pri;
-  pri.textContent=t.pri;
-  pri.title='تغییر اولویت';
-  pri.setAttribute('aria-label','اولویت '+t.pri+'، برای تغییر ضربه بزنید');
-  pri.onclick=function(){
-    var o=['A','B','C','D','E'];
-    t.pri=o[(o.indexOf(t.pri)+1)%5];
-    save(); draw();
-  };
-
-  var txt=document.createElement('input');
-  txt.className='txt';
-  txt.value=t.text;
-  txt.readOnly=true;
-  txt.setAttribute('aria-label','متن کار');
-  txt.onchange=function(){ t.text=txt.value.trim()||t.text; save(); };
-  txt.onblur=function(){ txt.readOnly=true; };
-
-  var meta=document.createElement('span');
-  meta.className='meta';
-  meta.textContent=t.due?labelOf(t.due):'';
-
-  var del=document.createElement('button');
-  del.className='del';
-  del.textContent='✕';
-  del.title='حذف';
-  del.setAttribute('aria-label','حذف کار');
-  del.onclick=function(){
-    if(!confirm('این کار حذف شود؟')) return;
-    state.tasks=state.tasks.filter(function(x){return x.id!==t.id;});
-    save(); draw();
-  };
-
-  li.appendChild(chk);
-  li.appendChild(pri);
-  li.appendChild(txt);
-
-  var subs=t.subs||[];
-  if(subs.length){
-    var sc=document.createElement('span');
-    sc.className='subcount';
-    sc.textContent=fmtNum(subs.filter(function(s){return s.done;}).length)+'/'+fmtNum(subs.length);
-    li.appendChild(sc);
-  }
-
-  li.appendChild(meta);
-  li.appendChild(del);
-
-  var panel=document.createElement('div');
-  panel.className='subpanel'+(openSubs[t.id]?' open':'');
-  drawSub(panel,t);
-
-  /* انتخاب کار برای ثبت سرسید از تقویم */
-  li.addEventListener('click',function(){ selectedId=t.id; });
-
-  /* دوبار ضربه / دوبار کلیک روی متن ⇒ باز شدن ریزکارها */
-  var lastTap=0;
-  function toggleSubs(){
-    openSubs[t.id]=!openSubs[t.id];
-    panel.classList.toggle('open',!!openSubs[t.id]);
-    selectedId=t.id;
-  }
-  txt.addEventListener('dblclick',function(e){ e.preventDefault(); toggleSubs(); });
-  txt.addEventListener('touchend',function(e){
-    var now=Date.now();
-    if(now-lastTap<320){ e.preventDefault(); toggleSubs(); lastTap=0; }
-    else lastTap=now;
-  });
-
-  /* ویرایش متن با نگه‌داشتن انگشت */
-  var lp;
-  txt.addEventListener('touchstart',function(){
-    lp=setTimeout(function(){ txt.readOnly=false; txt.focus(); },600);
-  });
-  txt.addEventListener('touchend',function(){ clearTimeout(lp); });
-  txt.addEventListener('touchmove',function(){ clearTimeout(lp); });
-
-  var box=document.createElement('li');
-  box.style.listStyle='none';
-  box.appendChild(li);
-  box.appendChild(panel);
-  return box;
-}
-
-function drawSub(panel,t){
-  panel.innerHTML='';
-  t.subs=t.subs||[];
-
-  var ul=document.createElement('ul');
-  t.subs.forEach(function(s,idx){
-    var li=document.createElement('li');
-
-    var c=document.createElement('button');
-    c.className='chk';
-    c.textContent=s.done?'✓':'';
-    c.setAttribute('aria-label','تیک ریزکار');
-    c.onclick=function(){ s.done=!s.done; save(); draw(); };
-
-    var sp=document.createElement('input');
-    sp.className='txt';
-    sp.value=s.text;
-    sp.setAttribute('aria-label','متن ریزکار');
-    sp.style.textDecoration=s.done?'line-through':'none';
-    sp.style.opacity=s.done?.5:1;
-    sp.onchange=function(){ s.text=sp.value.trim()||s.text; save(); };
-
-    var d=document.createElement('button');
-    d.className='del';
-    d.textContent='✕';
-    d.setAttribute('aria-label','حذف ریزکار');
-    d.onclick=function(){ t.subs.splice(idx,1); save(); draw(); };
-
-    li.appendChild(c);
-    li.appendChild(sp);
-    li.appendChild(d);
-    ul.appendChild(li);
-  });
-  panel.appendChild(ul);
-
-  var add=document.createElement('div');
-  add.className='subadd';
-
-  var inp=document.createElement('input');
-  inp.type='text';
-  inp.placeholder='ریزکار جدید…';
-  inp.setAttribute('aria-label','ریزکار جدید');
-
-  var b=document.createElement('button');
-  b.className='btn';
-  b.textContent='افزودن';
-
-  function doAdd(){
-    var v=inp.value.trim();
-    if(!v) return;
-    t.subs.push({text:v,done:false});
-    inp.value='';
-    save(); draw();
-  }
-  b.onclick=doAdd;
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') doAdd(); });
-
-  add.appendChild(inp);
-  add.appendChild(b);
-  panel.appendChild(add);
-}
-
-/* ==================== افزودن کار ==================== */
-function addTask(){
-  var v=$('#newTxt').value.trim();
-  if(!v) return;
-  state.tasks.push({
-    id:uid(), text:v, pri:$('#newPri').value, done:false,
-    due:dateFilter||null, subs:[], created:Date.now()
-  });
-  $('#newTxt').value='';
-  save(); draw();
-}
-$('#btnAdd').onclick=addTask;
-$('#newTxt').addEventListener('keydown',function(e){ if(e.key==='Enter') addTask(); });
-
-/* ==================== فیلترها ==================== */
-document.querySelectorAll('.chip[data-f]').forEach(function(c){
-  c.onclick=function(){
-    document.querySelectorAll('.chip[data-f]').forEach(function(x){ x.classList.remove('on'); });
-    c.classList.add('on');
-    filter=c.dataset.f;
-    draw();
-  };
-});
-$('#dateChip').onclick=function(){
-  dateFilter=null;
-  $('#dateChip').style.display='none';
-  draw();
-};
-
-/* ==================== تقویم ==================== */
-function openCal(){
-  var t=todayJ();
-  if(!cal.y){ cal.y=t.jy; cal.m=t.jm; }
-  drawCal();
-  $('#calSheet').classList.add('open');
-}
-function drawCal(){
-  $('#calTitle').textContent=J_MONTHS[cal.m-1]+' '+fmtNum(cal.y);
-  var g=$('#calGrid');
-  g.innerHTML='';
-  J_WD.forEach(function(w){
-    var d=document.createElement('div');
-    d.className='wd'; d.textContent=w;
-    g.appendChild(d);
-  });
-  var start=colOf(cal.y,cal.m,1), len=jMonthLen(cal.y,cal.m), t=todayJ();
-  for(var i=0;i<start;i++){
-    var e=document.createElement('div');
-    e.className='day empty';
-    g.appendChild(e);
-  }
-  for(var d=1;d<=len;d++){
-    (function(d){
-      var key=keyOf({jy:cal.y,jm:cal.m,jd:d});
-      var b=document.createElement('button');
-      b.className='day';
-      if(t.jy===cal.y&&t.jm===cal.m&&t.jd===d) b.classList.add('today');
-      if(cal.sel===key) b.classList.add('sel');
-      b.textContent=fmtNum(d);
-      b.setAttribute('aria-label',labelOf(key));
-      if(state.tasks.some(function(x){return x.due===key&&!x.done;})){
-        var dot=document.createElement('span');
-        dot.className='dot';
-        b.appendChild(dot);
-      }
-      b.onclick=function(){ cal.sel=key; drawCal(); };
-      g.appendChild(b);
-    })(d);
-  }
-}
-$('#btnCal').onclick=openCal;
-$('#pm').onclick=function(){ cal.m--; if(cal.m<1){cal.m=12;cal.y--;} drawCal(); };
-$('#nm').onclick=function(){ cal.m++; if(cal.m>12){cal.m=1;cal.y++;} drawCal(); };
-$('#calToday').onclick=function(){ var t=todayJ(); cal.y=t.jy; cal.m=t.jm; cal.sel=keyOf(t); drawCal(); };
-$('#calClose').onclick=function(){ $('#calSheet').classList.remove('open'); };
-$('#calSheet').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
-
-$('#calAssign').onclick=function(){
-  if(!cal.sel){ alert('اول یک روز را انتخاب کنید.'); return; }
-  var t=state.tasks.filter(function(x){return x.id===selectedId;})[0];
-  if(!t){ alert('اول روی یک کار در لیست ضربه بزنید تا انتخاب شود.'); return; }
-  t.due=cal.sel;
-  save(); draw();
-  $('#calSheet').classList.remove('open');
-};
-$('#calFilter').onclick=function(){
-  if(!cal.sel){ alert('اول یک روز را انتخاب کنید.'); return; }
-  dateFilter=cal.sel;
-  var chip=$('#dateChip');
-  chip.style.display='';
-  chip.classList.add('on');
-  chip.textContent='📅 '+labelOf(dateFilter)+'  ✕';
-  draw();
-  $('#calSheet').classList.remove('open');
-};
-
-/* ==================== تنظیمات ==================== */
-var PALETTE=['#2B2B2B','#1A237E','#004D40','#4E342E','#B71C1C','#6A1B9A','#37474F','#0277BD'];
 (function(){
-  var w=$('#swatches');
-  PALETTE.forEach(function(c){
-    var s=document.createElement('div');
-    s.className='sw';
-    s.style.background=c;
-    s.title=c;
-    s.setAttribute('role','button');
-    s.setAttribute('tabindex','0');
-    s.setAttribute('aria-label','رنگ فونت '+c);
-    function pick(){ state.ink=c; save(); applyTheme(); }
-    s.onclick=pick;
-    s.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
-    w.appendChild(s);
-  });
-})();
-$('#btnSet').onclick=function(){ $('#setSheet').classList.add('open'); };
-$('#setClose').onclick=function(){ $('#setSheet').classList.remove('open'); };
-$('#setSheet').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
-$('#inkPick').oninput=function(e){ state.ink=e.target.value; save(); applyTheme(); };
-$('#fsize').oninput=function(e){ state.fsize=+e.target.value; save(); applyTheme(); };
+  "use strict";
 
-$('#exportBtn').onclick=function(){
-  var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='todo-backup-'+keyOf(todayJ())+'.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-$('#importBtn').onclick=function(){ $('#importFile').click(); };
-$('#importFile').onchange=function(e){
-  var f=e.target.files[0];
-  if(!f) return;
-  var r=new FileReader();
-  r.onload=function(){
+  var KEY = "todo.v3";
+  var tasks = [];
+  var filter = "all";
+  var openId = null;
+
+  function load(){
     try{
-      var o=JSON.parse(r.result);
-      if(!o||!Array.isArray(o.tasks)) throw new Error('ساختار فایل معتبر نیست');
-      if(!confirm('داده‌های فعلی با فایل پشتیبان جایگزین شود؟')) return;
-      state=Object.assign({ink:'#2B2B2B',fsize:15},o);
-      save(); draw();
-    }catch(err){ alert('فایل خوانده نشد: '+err.message); }
-  };
-  r.readAsText(f);
-  e.target.value='';
-};
+      var raw = localStorage.getItem(KEY);
+      tasks = raw ? JSON.parse(raw) : [];
+      if(!(tasks instanceof Array)) tasks = [];
+    }catch(e){ tasks = []; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+  }
+  function uid(){
+    return Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36);
+  }
+  function byId(id){
+    for(var i=0;i<tasks.length;i++){ if(tasks[i].id === id) return tasks[i]; }
+    return null;
+  }
 
-/* ==================== شروع ==================== */
-load();
-(function(){
-  var t=todayJ();
-  $('#todayLbl').textContent=wdName(t)+'، '+labelOf(keyOf(t));
-})();
-draw();
+  // تاریخ شمسی بدون محاسبه دستی
+  function faDate(iso){
+    var d = iso ? new Date(iso) : new Date();
+    try{
+      return new Intl.DateTimeFormat("fa-IR-u-ca-persian",
+        { year:"numeric", month:"2-digit", day:"2-digit" }).format(d);
+    }catch(e){
+      return d.toISOString().slice(0,10);
+    }
+  }
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('SW failed',e); });
+  function addTask(){
+    var el = document.getElementById("newTxt");
+    var t = el.value.replace(/^\s+|\s+$/g,"");
+    if(!t) { el.focus(); return; }
+    tasks.unshift({
+      id: uid(),
+      text: t,
+      done: false,
+      prio: document.getElementById("newPrio").value,
+      created: new Date().toISOString(),
+      subs: []
+    });
+    el.value = "";
+    save(); render(); el.focus();
+  }
+
+  function addSub(taskId, text){
+    var t = byId(taskId);
+    if(!t) return;
+    text = text.replace(/^\s+|\s+$/g,"");
+    if(!text) return;
+    if(!t.subs) t.subs = [];
+    t.subs.push({ id: uid(), text: text, done: false });
+    save(); render();
+  }
+
+  function visible(){
+    var out = [];
+    for(var i=0;i<tasks.length;i++){
+      var t = tasks[i];
+      if(filter === "open" && t.done) continue;
+      if(filter === "done" && !t.done) continue;
+      out.push(t);
+    }
+    return out;
+  }
+
+  function render(){
+    var ul = document.getElementById("list");
+    ul.innerHTML = "";
+    var items = visible();
+
+    if(items.length === 0){
+      var p = document.createElement("li");
+      p.className = "empty";
+      p.textContent = "کاری ثبت نشده است.";
+      ul.appendChild(p);
+      return;
+    }
+
+    for(var i=0;i<items.length;i++){
+      var t = items[i];
+      var li = document.createElement("li");
+      li.className = "p-" + (t.prio || "B");
+
+      var row = document.createElement("div");
+      row.className = "row";
+
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!t.done;
+      cb.setAttribute("aria-label", "انجام شد");
+      cb.dataset.id = t.id;
+      cb.dataset.act = "toggle";
+      row.appendChild(cb);
+
+      var txt = document.createElement("div");
+      txt.className = "txt" + (t.done ? " done" : "");
+      txt.dataset.id = t.id;
+      txt.dataset.act = "open";
+      txt.textContent = t.text;
+
+      var meta = document.createElement("span");
+      meta.className = "meta";
+      var n = t.subs ? t.subs.length : 0;
+      meta.textContent = faDate(t.created) + (n ? "  •  " + n + " ریزکار" : "");
+      txt.appendChild(meta);
+      row.appendChild(txt);
+
+      var del = document.createElement("button");
+      del.className = "del";
+      del.type = "button";
+      del.textContent = "🗑";
+      del.setAttribute("aria-label", "حذف کار");
+      del.dataset.id = t.id;
+      del.dataset.act = "del";
+      row.appendChild(del);
+
+      li.appendChild(row);
+
+      if(openId === t.id){
+        var sul = document.createElement("ul");
+        sul.className = "subs";
+        var subs = t.subs || [];
+        for(var j=0;j<subs.length;j++){
+          var s = subs[j];
+          var sli = document.createElement("li");
+          var srow = document.createElement("div");
+          srow.className = "row";
+
+          var scb = document.createElement("input");
+          scb.type = "checkbox";
+          scb.checked = !!s.done;
+          scb.setAttribute("aria-label", "ریزکار انجام شد");
+          scb.dataset.id = t.id;
+          scb.dataset.sub = s.id;
+          scb.dataset.act = "subtoggle";
+          srow.appendChild(scb);
+
+          var stx = document.createElement("span");
+          stx.className = "txt" + (s.done ? " done" : "");
+          stx.textContent = s.text;
+          srow.appendChild(stx);
+
+          var sdel = document.createElement("button");
+          sdel.className = "del";
+          sdel.type = "button";
+          sdel.textContent = "×";
+          sdel.setAttribute("aria-label", "حذف ریزکار");
+          sdel.dataset.id = t.id;
+          sdel.dataset.sub = s.id;
+          sdel.dataset.act = "subdel";
+          srow.appendChild(sdel);
+
+          sli.appendChild(srow);
+          sul.appendChild(sli);
+        }
+        li.appendChild(sul);
+
+        var wrap = document.createElement("div");
+        wrap.className = "subadd";
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.placeholder = "ریزکار جدید...";
+        inp.setAttribute("aria-label", "ریزکار جدید");
+        var bt = document.createElement("button");
+        bt.type = "button";
+        bt.textContent = "افزودن";
+        (function(id, inputEl){
+          bt.onclick = function(){ addSub(id, inputEl.value); };
+          inputEl.onkeydown = function(ev){
+            if(ev.key === "Enter"){ addSub(id, inputEl.value); }
+          };
+        })(t.id, inp);
+        wrap.appendChild(inp);
+        wrap.appendChild(bt);
+        li.appendChild(wrap);
+      }
+
+      ul.appendChild(li);
+    }
+  }
+
+  // یک شنونده برای کل لیست
+  document.getElementById("list").addEventListener("click", function(ev){
+    var el = ev.target;
+    var act = el.dataset ? el.dataset.act : null;
+    if(!act) return;
+    var t = byId(el.dataset.id);
+    if(!t) return;
+
+    if(act === "toggle"){ t.done = el.checked; save(); render(); }
+    else if(act === "del"){
+      if(confirm("این کار حذف شود؟")){
+        for(var i=0;i<tasks.length;i++){
+          if(tasks[i].id === t.id){ tasks.splice(i,1); break; }
+        }
+        save(); render();
+      }
+    }
+    else if(act === "open"){
+      openId = (openId === t.id) ? null : t.id;
+      render();
+    }
+    else if(act === "subtoggle" || act === "subdel"){
+      var subs = t.subs || [];
+      for(var k=0;k<subs.length;k++){
+        if(subs[k].id === el.dataset.sub){
+          if(act === "subtoggle") subs[k].done = el.checked;
+          else subs.splice(k,1);
+          break;
+        }
+      }
+      save(); render();
+    }
   });
-}
+
+  document.getElementById("btnAdd").onclick = addTask;
+  document.getElementById("newTxt").onkeydown = function(ev){
+    if(ev.key === "Enter") addTask();
+  };
+
+  var fbtns = document.querySelectorAll(".filters button");
+  for(var i=0;i<fbtns.length;i++){
+    fbtns[i].onclick = function(){
+      filter = this.dataset.f;
+      for(var j=0;j<fbtns.length;j++) fbtns[j].className = "";
+      this.className = "on";
+      render();
+    };
+  }
+
+  document.getElementById("btnCal").onclick = function(){
+    alert("امروز: " + faDate(null));
+  };
+
+  var mSet = document.getElementById("mSet");
+  document.getElementById("btnSet").onclick = function(){ mSet.className = "modal open"; };
+  document.getElementById("btnCloseSet").onclick = function(){ mSet.className = "modal"; };
+  mSet.onclick = function(ev){ if(ev.target === mSet) mSet.className = "modal"; };
+
+  document.getElementById("btnExport").onclick = function(){
+    var blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "todo-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  document.getElementById("btnImportPick").onclick = function(){
+    document.getElementById("fileIn").click();
+  };
+  document.getElementById("fileIn").onchange = function(){
+    var f = this.files && this.files[0];
+    if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      try{
+        var data = JSON.parse(r.result);
+        if(data instanceof Array){
+          tasks = data;
+          save(); render();
+          mSet.className = "modal";
+          alert("بازگردانی انجام شد.");
+        } else {
+          alert("ساختار فایل درست نیست.");
+        }
+      }catch(e){ alert("فایل قابل خواندن نیست."); }
+    };
+    r.readAsText(f);
+    this.value = "";
+  };
+
+  document.getElementById("btnClear").onclick = function(){
+    if(confirm("همه کارها پاک شوند؟ این کار برگشت‌پذیر نیست.")){
+      tasks = []; openId = null; save(); render();
+      mSet.className = "modal";
+    }
+  };
+
+  load();
+  render();
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
 </script>
 </body>
 </html>
