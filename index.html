@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#37474F">
 <title>دفترچه کارها</title>
-<link rel="manifest" href="/todo-app/manifest.json">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root{
@@ -13,7 +13,7 @@
     --line:#CFD8E3;
     --margin-red:#E57373;
     --cover:#37474F;
-    --ink:#2B2B2B;          /* رنگ فونت، از تنظیمات عوض می‌شود */
+    --ink:#2B2B2B;
     --muted:#7A6E58;
     --green:#2E7D32;
   }
@@ -28,7 +28,6 @@
   #app{max-width:520px;margin:0 auto;min-height:100%;background:var(--paper);
        box-shadow:0 0 24px rgba(0,0,0,.5);display:flex;flex-direction:column}
 
-  /* جلد دفتر */
   header{background:var(--cover);color:#fff;padding:12px 14px;
          padding-top:calc(12px + env(safe-area-inset-top));
          display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
@@ -38,7 +37,6 @@
         width:36px;height:36px;font-size:17px;cursor:pointer}
   .ibtn:active{background:rgba(255,255,255,.3)}
 
-  /* کاغذ خط‌دار */
   main{position:relative;flex:1;padding:10px 0 90px}
   main::before{content:"";position:absolute;inset:0;pointer-events:none;
     background:repeating-linear-gradient(to bottom,transparent 0 43px,var(--line) 43px 44px)}
@@ -46,7 +44,6 @@
     background:var(--margin-red);opacity:.55;pointer-events:none}
   .wrap{position:relative;z-index:1}
 
-  /* ورودی کار جدید */
   .adder{display:flex;gap:6px;padding:8px 12px 12px 12px;align-items:center}
   .adder input[type=text]{flex:1;height:40px;border:1px solid #D8CBAE;border-radius:10px;
     background:#fffdf5;padding:0 10px;font:inherit;color:var(--ink)}
@@ -55,7 +52,6 @@
   .addbtn{height:40px;min-width:44px;border:0;border-radius:10px;background:var(--cover);
     color:#fff;font-size:20px;font-weight:700;cursor:pointer}
 
-  /* لیست کارها */
   ul.tasks{list-style:none;margin:0;padding:0}
   li.task{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 12px 0 12px;
           position:relative}
@@ -64,7 +60,7 @@
     cursor:pointer;font-size:15px;color:var(--green);line-height:1;padding:0}
   li.task.done .txt{text-decoration:line-through;opacity:.5}
   .pri{flex:0 0 24px;height:24px;border-radius:6px;display:grid;place-items:center;
-       font-weight:800;font-size:13px;color:#fff;cursor:pointer}
+       font-weight:800;font-size:13px;color:#fff;cursor:pointer;border:0;font-family:inherit}
   .A{background:#C62828}.B{background:#EF6C00}.C{background:#F9A825;color:#3b3b3b}
   .D{background:#2E7D32}.E{background:#546E7A}
   .txt{flex:1;font-size:15px;line-height:1.3;word-break:break-word;padding:4px 0;
@@ -73,21 +69,21 @@
   .del{background:none;border:0;color:#B0A38A;font-size:16px;cursor:pointer;padding:4px}
   .subcount{font-size:11px;background:#E8DFC6;border-radius:8px;padding:1px 6px;color:var(--muted)}
 
-  /* پنل ریزکارها */
   .subpanel{display:none;padding:2px 12px 10px 46px;background:rgba(255,255,255,.45)}
   .subpanel.open{display:block}
   .subpanel ul{list-style:none;margin:0;padding:0}
   .subpanel li{display:flex;align-items:center;gap:8px;min-height:36px}
-  .subpanel .chk{width:18px;height:18px;flex:0 0 18px;font-size:12px}
+  .subpanel .chk{width:18px;height:18px;flex:0 0 18px;font-size:12px;border:2px solid var(--muted);
+    border-radius:5px;background:transparent;display:grid;place-items:center;color:var(--green);
+    cursor:pointer;padding:0;line-height:1}
   .subpanel .txt{font-size:14px}
   .subadd{display:flex;gap:6px;margin-top:6px}
   .subadd input{flex:1;height:34px;border:1px dashed #C9B896;border-radius:8px;
     background:#fffdf7;padding:0 8px;font:inherit;font-size:14px;color:var(--ink)}
   .subadd button{height:34px;border:0;border-radius:8px;background:var(--muted);color:#fff;
-    padding:0 12px;cursor:pointer}
+    padding:0 12px;cursor:pointer;font:inherit}
   .hint{font-size:11px;color:var(--muted);text-align:center;padding:6px}
 
-  /* تقویم */
   .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50;
          align-items:flex-end;justify-content:center}
   .sheet.open{display:flex}
@@ -117,7 +113,7 @@
   .sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #C9B896;cursor:pointer}
   .filterbar{display:flex;gap:6px;padding:0 12px 8px;align-items:center;flex-wrap:wrap}
   .chip{border:1px solid #D8CBAE;background:#fffdf5;border-radius:20px;padding:4px 10px;
-        font-size:12px;cursor:pointer;color:var(--ink)}
+        font-size:12px;cursor:pointer;color:var(--ink);font-family:inherit}
   .chip.on{background:var(--cover);color:#fff;border-color:var(--cover)}
 </style>
 </head>
@@ -178,34 +174,60 @@
   <div class="card">
     <b>تنظیمات نمایش</b>
     <div class="row">
-      <label>رنگ فونت:</label>
+      <label for="inkPick">رنگ فونت:</label>
       <input type="color" id="inkPick" value="#2B2B2B">
     </div>
     <div class="row swatches" id="swatches"></div>
     <div class="row">
-      <label>اندازه فونت:</label>
+      <label for="fsize">اندازه فونت:</label>
       <input type="range" id="fsize" min="13" max="20" step="1" value="15" style="flex:1">
     </div>
     <div class="row">
       <button class="btn ghost" id="exportBtn">خروجی پشتیبان (JSON)</button>
-      <button class="btn ghost" i">خروجی پشتیبان (JSON)</button>
       <button class="btn ghost" id="importBtn">بازیابی از فایل</button>
-      <input type="file" >
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="setClose">بستن</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ==================== تقویم شمسی (تبدیل دقیق) ==================== */
 function div(a,b){return ~~(a/b);}
+
 function jalCal(jy){
-  var breaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
-  var bl=breaks.length,gy=jy+621,leapJ=-14,jp=breaks[0],jm,jump,leap,n,i;
-  for(i=1;i<bl;i++){jm=breaks[i];jump=jm-jp;if(jy<jm)b26,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
-  var bl=breaks.length,gy=jy+621,leapJ=-14,jp=breaks[0],jm,jump,leap,n,i;
-  for(i=1;i<bl;i++){jm=breaks[i];jump=jm-jp;if(jy<jm)b)*3,4)-150;
+  var breaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,
+              1635,2060,2097,2192,2262,2324,2394,2456,3178];
+  var bl=breaks.length, gy=jy+621, leapJ=-14, jp=breaks[0];
+  var jm, jump=0, leap, n, i;
+
+  if(jy<jp||jy>=breaks[bl-1]) throw new Error('سال شمسی نامعتبر: '+jy);
+
+  for(i=1;i<bl;i++){
+    jm=breaks[i];
+    jump=jm-jp;
+    if(jy<jm) break;
+    leapJ=leapJ+div(jump,33)*8+div(jump%33,4);
+    jp=jm;
+  }
+  n=jy-jp;
+
+  leapJ=leapJ+div(n,33)*8+div(n%33+3,4);
+  if(jump%33===4 && jump-n===4) leapJ++;
+
+  var leapG=div(gy,4)-div((div(gy,100)+1)*3,4)-150;
   var march=20+leapJ-leapG;
-  if(jump-n<6)n=n-jump+div(jump+4,33)*33;
-  leap=((n+1)%33-1)%4; if(leap===-1)leap=4;
-  return {leap:leap,gy:gy,march:march};
+
+  if(jump-n<6) n=n-jump+div(jump+4,33)*33;
+
+  leap=((n+1)%33-1)%4;
+  if(leap===-1) leap=4;
+
+  return {leap:leap, gy:gy, march:march};
 }
+
 function g2d(gy,gm,gd){
   var d=div((gy+div(gm-8,6)+100100)*1461,4)+div(153*((gm+9)%12)+2,5)+gd-34840408;
   return d-div(div(gy+100100+div(gm-8,6),100)*3,4)+752;
@@ -215,17 +237,24 @@ function d2g(jdn){
   var i=div(j%1461,4)*5+308, gd=div(i%153,5)+1, gm=(div(i,153)%12)+1, gy=div(j,1461)-100100+div(8-gm,6);
   return {gy:gy,gm:gm,gd:gd};
 }
-function j2d(jy,jm,jd){var r=jalCal(jy);return g2d(r.gy,3,r.march)+(jm-1)*31-div(jm,7)*(jm-7)+jd-1;}
-function d2j(jdn){
-  var gy=d2g(jdn).gy, jy=gy-621, r=jalCal(jy), jdn1f=g2d(gy,3,r.march), k=jdn-jdn1f, jm,jd;
-  if(k>=0){ if(k<=185){return {jy:jy,jm:1+div(k,31),jd:(k%31)+1};} k-=186; }
-  else { jy--; k+=179; if(r.leap===1)k++; }
+fu097)*3,4)*4-3908;
+  var i=div(j%1461,4)*5+308, gd=div(i%153,5)+1, gm=(div(i,153)%12)+1, gy=div(j,1461)-100100+div(8-gm,6);
+  return {gy:gy,gm:gm,gd:gd};
+}
+fujy), jdn1f=g2d(gy,3,r.march), k=jdn-jdn1f, jm, jd;
+  if(k>=0){
+    if(k<=185){ return {jy:jy, jm:1+div(k,31), jd:(k%31)+1}; }
+    k-=186;
+  } else {
+    jy--; k+=179;
+    if(r.leap===1) k++;
+  }
   jm=7+div(k,30); jd=(k%30)+1;
   return {jy:jy,jm:jm,jd:jd};
 }
 function jMonthLen(jy,jm){
-  if(jm<=6)return 31;
-  if(jm<=11)return 30;
+  if(jm<=6) return 31;
+  if(jm<=11) return 30;
   return jalCal(jy).leap===0?30:29;
 }
 function j2g(jy,jm,jd){return d2g(j2d(jy,jm,jd));}
@@ -234,10 +263,17 @@ function todayJ(){var n=new Date();return g2j(n.getFullYear(),n.getMonth()+1,n.g
 
 var J_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 var J_WD=['ش','ی','د','س','چ','پ','ج'];
-function fmtNum(n,len){ n=String(n); while(len&&n.length<len) n='0'+n; return n.replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];}); }
-function keyOf(j){return j.jy+'-'+String(j.jm).padStart(2,'0')+'-'+String(j.jd).padStart(2,'0');}
+var J_WD_NAMES=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+
+function fmtNum(n,len){
+  n=String(n);
+  while(len&&n.length<len) n='0'+n;
+  return n.replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});
+}
+function pad2(n){ n=String(n); return n.length<2?'0'+n:n; }
+function keyOf(j){ return j.jy+'-'+pad2(j.jm)+'-'+pad2(j.jd); }
 function labelOf(key){
-  if(!key)return '';
+  if(!key) return '';
   var p=key.split('-').map(Number);
   return fmtNum(p[2])+' '+J_MONTHS[p[1]-1]+' '+fmtNum(p[0]);
 }
@@ -246,17 +282,25 @@ function colOf(jy,jm,jd){
   var g=j2g(jy,jm,jd);
   return (new Date(g.gy,g.gm-1,g.gd).getDay()+1)%7;
 }
+function wdName(j){ return J_WD_NAMES[colOf(j.jy,j.jm,j.jd)]; }
 
 /* ==================== ذخیره‌سازی ==================== */
 var KEY='notebook_todo_v1';
 var state={tasks:[],ink:'#2B2B2B',fsize:15};
+
 function load(){
   try{
     var raw=localStorage.getItem(KEY);
-    if(raw){var o=JSON.parse(raw); if(o&&Array.isArray(o.tasks)) state=Object.assign(state,o);}
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o&&Array.isArray(o.tasks)) state=Object.assign(state,o);
+    }
   }catch(e){ console.warn('load failed',e); }
 }
-function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ alert('ذخیره ناموفق بود: '+e.message); } }
+function save(){
+  try{ localStorage.setItem(KEY,JSON.stringify(state)); }
+  catch(e){ alert('ذخیره ناموفق بود: '+e.message); }
+}
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ==================== وضعیت رابط ==================== */
@@ -269,19 +313,20 @@ var list=$('#list');
 /* ==================== رندر ==================== */
 function applyTheme(){
   document.documentElement.style.setProperty('--ink',state.ink);
-  document.querySelectorAll('.txt').forEach(function(e){e.style.fontSize=state.fsize+'px';});
-  $('#inkPick').value=state.ink; $('#fsize').value=state.fsize;
+  document.querySelectorAll('.txt').forEach(function(e){ e.style.fontSize=state.fsize+'px'; });
+  $('#inkPick').value=state.ink;
+  $('#fsize').value=state.fsize;
 }
 
 function visibleTasks(){
   return state.tasks.filter(function(t){
-    if(filter==='open'&&t.done)return false;
-    if(filter==='done'&&!t.done)return false;
-    if(dateFilter&&t.due!==dateFilter)return false;
+    if(filter==='open'&&t.done) return false;
+    if(filter==='done'&&!t.done) return false;
+    if(dateFilter&&t.due!==dateFilter) return false;
     return true;
   }).sort(function(a,b){
-    if(a.done!==b.done)return a.done?1:-1;
-    if(a.pri!==b.pri)return a.pri<b.pri?-1:1;
+    if(a.done!==b.done) return a.done?1:-1;
+    if(a.pri!==b.pri) return a.pri<b.pri?-1:1;
     return a.created-b.created;
   });
 }
@@ -291,7 +336,8 @@ function draw(){
   var arr=visibleTasks();
   if(!arr.length){
     var li=document.createElement('li');
-    li.className='task'; li.style.color='var(--muted)';
+    li.className='task';
+    li.style.color='var(--muted)';
     li.textContent='کاری برای نمایش نیست.';
     list.appendChild(li);
   }
@@ -305,23 +351,49 @@ function taskNode(t){
   li.dataset.id=t.id;
 
   var chk=document.createElement('button');
-  chk.className='chk'; chk.textContent=t.done?'✓':'';
+  chk.className='chk';
+  chk.textContent=t.done?'✓':'';
   chk.setAttribute('aria-label','تیک انجام شد');
   chk.setAttribute('aria-pressed',t.done?'true':'false');
   chk.onclick=function(){ t.done=!t.done; save(); draw(); };
 
   var pri=document.createElement('button');
-  pri.className='pri '+t.pri; pri.textContent=t.pri;
+  pri.className='pri '+t.pri;
+  pri.textContent=t.pri;
   pri.title='تغییر اولویت';
+  pri.setAttribute('aria-label','اولویت '+t.pri+'، برای تغییر ضربه بزنید');
   pri.onclick=function(){
     var o=['A','B','C','D','E'];
-    t.pri=o[(o.indexOf(t.pri)+1)%5]; save(); draw();
+    t.pri=o[(o.indexOf(t.pri)+1)%5];
+    save(); draw();
   };
 
   var txt=document.createElement('input');
-  txt.className='txt'; txt.value=t.text; txt.readOnly=true;
+  txt.className='txt';
+  txt.value=t.text;
+  txt.readOnly=true;
+  txt.setAttribute('aria-label','متن کار');
   txt.onchange=function(){ t.text=txt.value.trim()||t.text; save(); };
   txt.onblur=function(){ txt.readOnly=true; };
+
+  var meta=document.createElement('span');
+  meta.className='meta';
+  meta.textContent=t.due?labelOf(t.due):'';
+
+  var del=document.createElement('button');
+  del.className='del';
+  del.textContent='✕';
+  del.title='حذف';
+  del.setAttribute('aria-label','حذف کار');
+  del.onclick=function(){
+    if(!confirm('این کار حذف شود؟')) return;
+    state.tasks=state.tasks.filter(function(x){return x.id!==t.id;});
+    save(); draw();
+  };
+
+  li.appendChild(chk);
+  li.appendChild(pri);
+  li.appendChild(txt);
 
   var subs=t.subs||[];
   if(subs.length){
@@ -331,19 +403,8 @@ function taskNode(t){
     li.appendChild(sc);
   }
 
-  var meta=document.createElement('span');
-  meta.className='meta'; meta.textContent=t.due?labelOf(t.due):'';
-
-  var del=document.createElement('button');
-  del.className='del'; del.textContent='✕'; del.title='حذف';
-  del.onclick=function(){
-    if(!confirm('این کار حذف شود؟'))return;
-    state.tasks=state.tasks.filter(function(x){return x.id!==t.id;});
-    save(); draw();
-  };
-
-  li.appendChild(chk); li.appendChild(pri); li.appendChild(txt);
-  li.appendChild(meta); li.appendChild(del);
+  li.appendChild(meta);
+  li.appendChild(del);
 
   var panel=document.createElement('div');
   panel.className='subpanel'+(openSubs[t.id]?' open':'');
@@ -365,112 +426,148 @@ function taskNode(t){
     if(now-lastTap<320){ e.preventDefault(); toggleSubs(); lastTap=0; }
     else lastTap=now;
   });
+
   /* ویرایش متن با نگه‌داشتن انگشت */
   var lp;
-  txt.addEventListener('touchstart',function(){ lp=setTimeout(function(){ txt.readOnly=false; txt.focus(); },600); });
+  txt.addEventListener('touchstart',function(){
+    lp=setTimeout(function(){ txt.readOnly=false; txt.focus(); },600);
+  });
   txt.addEventListener('touchend',function(){ clearTimeout(lp); });
   txt.addEventListener('touchmove',function(){ clearTimeout(lp); });
 
-  var frag=document.createDocumentFragment();
-  frag.appendChild(li); frag.appendChild(panel);
   var box=document.createElement('li');
-  box.style.listStyle='none'; box.appendChild(frag);
+  box.style.listStyle='none';
+  box.appendChild(li);
+  box.appendChild(panel);
   return box;
 }
 
 function drawSub(panel,t){
   panel.innerHTML='';
   t.subs=t.subs||[];
+
   var ul=document.createElement('ul');
   t.subs.forEach(function(s,idx){
     var li=document.createElement('li');
 
     var c=document.createElement('button');
-    c.className='chk'; c.textContent=s.done?'✓':'';
+    c.className='chk';
+    c.textContent=s.done?'✓':'';
+    c.setAttribute('aria-label','تیک ریزکار');
     c.onclick=function(){ s.done=!s.done; save(); draw(); };
 
     var sp=document.createElement('input');
-    sp.className='txt'; sp.value=s.text;
+    sp.className='txt';
+    sp.value=s.text;
+    sp.setAttribute('aria-label','متن ریزکار');
     sp.style.textDecoration=s.done?'line-through':'none';
     sp.style.opacity=s.done?.5:1;
     sp.onchange=function(){ s.text=sp.value.trim()||s.text; save(); };
 
     var d=document.createElement('button');
-    d.className='del'; d.textContent='✕';
+    d.className='del';
+    d.textContent='✕';
+    d.setAttribute('aria-label','حذف ریزکار');
     d.onclick=function(){ t.subs.splice(idx,1); save(); draw(); };
 
-    li.appendChild(c); li.appendChild(sp); li.appendChild(d);
+    li.appendChild(c);
+    li.appendChild(sp);
+    li.appendChild(d);
     ul.appendChild(li);
   });
   panel.appendChild(ul);
 
   var add=document.createElement('div');
   add.className='subadd';
-  var inp=document.createElement('input');
-  inp.type='text'; inp.placeholder='ریزکار جدید…';
-  var b=document.createElemenpendChild(sp); li.appendChild(d);
-    ul.appendChild(li);
-  });
-  panel.appendChild(ul);
 
-  var add=document.createElement('div');
-  add.className='subadd';
   var inp=document.createElement('input');
-  inp.type='text'; inp.placeholder='ریزکار جدید…';
-  var b=document.createElemen
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter')doAdd(); });
-  add.appendChild(inp); add.appendChild(b);
+  inp.type='text';
+  inp.placeholder='ریزکار جدید…';
+  inp.setAttribute('aria-label','ریزکار جدید');
+
+  var b=document.createElement('button');
+  b.className='btn';
+  b.textContent='افزودن';
+
+  function doAdd(){
+    var v=inp.value.trim();
+    if(!v) return;
+    t.subs.push({text:v,done:false});
+    inp.value='';
+    save(); draw();
+  }
+  b.onclick=doAdd;
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') doAdd(); });
+
+  add.appendChild(inp);
+  add.appendChild(b);
   panel.appendChild(add);
 }
 
 /* ==================== افزودن کار ==================== */
 function addTask(){
   var v=$('#newTxt').value.trim();
-  if(!v)return;
+  if(!v) return;
   state.tasks.push({
     id:uid(), text:v, pri:$('#newPri').value, done:false,
     due:dateFilter||null, subs:[], created:Date.now()
   });
-  $('#newTxt').value=''; save(); draw();
+  $('#newTxt').value='';
+  save(); draw();
 }
 $('#btnAdd').onclick=addTask;
-$('#newTxt').addEventListener('keydown',function(e){ if(e.key==='Enter')addTask(); });
+$('#newTxt').addEventListener('keydown',function(e){ if(e.key==='Enter') addTask(); });
 
 /* ==================== فیلترها ==================== */
 document.querySelectorAll('.chip[data-f]').forEach(function(c){
   c.onclick=function(){
-    document.querySelectorAll('.chip[data-f]').forEach(function(x){x.classList.remove('on');});
-    c.classList.add('on'); filter=c.dataset.f; draw();
+    document.querySelectorAll('.chip[data-f]').forEach(function(x){ x.classList.remove('on'); });
+    c.classList.add('on');
+    filter=c.dataset.f;
+    draw();
   };
 });
-$('#dateChip').onclick=function(){ dateFilter=null; $('#dateChip').style.display='none'; draw(); };
+$('#dateChip').onclick=function(){
+  dateFilter=null;
+  $('#dateChip').style.display='none';
+  draw();
+};
 
 /* ==================== تقویم ==================== */
 function openCal(){
   var t=todayJ();
   if(!cal.y){ cal.y=t.jy; cal.m=t.jm; }
-  drawCal(); $('#calSheet').classList.add('open');
+  drawCal();
+  $('#calSheet').classList.add('open');
 }
 function drawCal(){
   $('#calTitle').textContent=J_MONTHS[cal.m-1]+' '+fmtNum(cal.y);
-  var g=$('#calGrid'); g.innerHTML='';
+  var g=$('#calGrid');
+  g.innerHTML='';
   J_WD.forEach(function(w){
-    var d=document.createElement('div'); d.className='wd'; d.textContent=w; g.appendChild(d);
+    var d=document.createElement('div');
+    d.className='wd'; d.textContent=w;
+    g.appendChild(d);
   });
   var start=colOf(cal.y,cal.m,1), len=jMonthLen(cal.y,cal.m), t=todayJ();
   for(var i=0;i<start;i++){
-    var e=document.createElement('div'); e.className='day empty'; g.appendChild(e);
+    var e=document.createElement('div');
+    e.className='day empty';
+    g.appendChild(e);
   }
   for(var d=1;d<=len;d++){
     (function(d){
       var key=keyOf({jy:cal.y,jm:cal.m,jd:d});
       var b=document.createElement('button');
       b.className='day';
-      if(t.jy===cal.y&&t.jm===cal.m&&t.jd===d)b.classList.add('today');
-      if(cal.sel===key)b.classList.add('sel');
+      if(t.jy===cal.y&&t.jm===cal.m&&t.jd===d) b.classList.add('today');
+      if(cal.sel===key) b.classList.add('sel');
       b.textContent=fmtNum(d);
+      b.setAttribute('aria-label',labelOf(key));
       if(state.tasks.some(function(x){return x.due===key&&!x.done;})){
-        var dot=document.createElement('span'); dot.className='dot'; b.appendChild(dot);
+        var dot=document.createElement('span');
+        dot.className='dot';
+        b.appendChild(dot);
       }
       b.onclick=function(){ cal.sel=key; drawCal(); };
       g.appendChild(b);
@@ -486,18 +583,21 @@ $('#calSheet').addEventListener('click',function(e){ if(e.target===this) this.cl
 
 $('#calAssign').onclick=function(){
   if(!cal.sel){ alert('اول یک روز را انتخاب کنید.'); return; }
-  var t=state.tasks.find(function(x){return x.id===selectedId;});
+  var t=state.tasks.filter(function(x){return x.id===selectedId;})[0];
   if(!t){ alert('اول روی یک کار در لیست ضربه بزنید تا انتخاب شود.'); return; }
-  t.due=cal.sel; save(); draw();
+  t.due=cal.sel;
+  save(); draw();
   $('#calSheet').classList.remove('open');
 };
 $('#calFilter').onclick=function(){
   if(!cal.sel){ alert('اول یک روز را انتخاب کنید.'); return; }
   dateFilter=cal.sel;
   var chip=$('#dateChip');
-  chip.style.display=''; chip.classList.add('on');
+  chip.style.display='';
+  chip.classList.add('on');
   chip.textContent='📅 '+labelOf(dateFilter)+'  ✕';
-  draw(); $('#calSheet').classList.remove('open');
+  draw();
+  $('#calSheet').classList.remove('open');
 };
 
 /* ==================== تنظیمات ==================== */
@@ -506,8 +606,15 @@ var PALETTE=['#2B2B2B','#1A237E','#004D40','#4E342E','#B71C1C','#6A1B9A','#37474
   var w=$('#swatches');
   PALETTE.forEach(function(c){
     var s=document.createElement('div');
-    s.className='sw'; s.style.background=c; s.title=c;
-    s.onclick=function(){ state.ink=c; save(); applyTheme(); };
+    s.className='sw';
+    s.style.background=c;
+    s.title=c;
+    s.setAttribute('role','button');
+    s.setAttribute('tabindex','0');
+    s.setAttribute('aria-label','رنگ فونت '+c);
+    function pick(){ state.ink=c; save(); applyTheme(); }
+    s.onclick=pick;
+    s.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
     w.appendChild(s);
   });
 })();
@@ -522,34 +629,33 @@ $('#exportBtn').onclick=function(){
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='todo-backup-'+keyOf(todayJ())+'.json';
-  a.click(); URL.revokeObjectURL(a.href);
+  a.click();
+  URL.revokeObjectURL(a.href);
 };
 $('#importBtn').onclick=function(){ $('#importFile').click(); };
 $('#importFile').onchange=function(e){
-  var f=e.target.files[0]; if(!f)return;
+  var f=e.target.files[0];
+  if(!f) return;
   var r=new FileReader();
   r.onload=function(){
     try{
       var o=JSON.parse(r.result);
-      if(!o||!Array.isArray(o.tasks))throw new Error('ساختار فایل معتبر نیست');
-      if(!confirm('داده‌های فعلی با فایل پشتیبان جایگزین شود؟'))return;
+      if(!o||!Array.isArray(o.tasks)) throw new Error('ساختار فایل معتبر نیست');
+      if(!confirm('داده‌های فعلی با فایل پشتیبان جایگزین شود؟')) return;
       state=Object.assign({ink:'#2B2B2B',fsize:15},o);
       save(); draw();
     }catch(err){ alert('فایل خوانده نشد: '+err.message); }
   };
   r.readAsText(f);
+  e.target.value='';
 };
 
 /* ==================== شروع ==================== */
 load();
 (function(){
   var t=todayJ();
-  $('#todayLbl').textContent=J_WD_FULL(t)+'، '+labelOf(keyOf(t));
+  $('#todayLbl').textContent=wdName(t)+'، '+labelOf(keyOf(t));
 })();
-function J_WD_FULL(j){
-  var names=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
-  return names[colOf(j.jy,j.jm,j.jd)];
-}
 draw();
 
 if('serviceWorker' in navigator){
