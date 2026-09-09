@@ -8,398 +8,516 @@
 <meta name="theme-color" content="#2c3e44">
 <link rel="icon" href="icon-192.png">
 <style>
-  :root{ --bg:#2c3e44; --card:#fdf6e8; --line:#e6d9bf; --ink:#22343a; --accent:#2c3e44; }
-  *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--bg); color:var(--ink);
-        font-family:Tahoma,"Segoe UI",sans-serif; }
-  #app{ max-width:520px; margin:0 auto; background:var(--card); min-height:100vh; }
-  header{ background:var(--accent); color:#fff; padding:12px 14px;
-          display:flex; align-items:center; gap:8px; }
-  header h1{ font-size:17px; margin:0; margin-inline-start:auto; }
-  .ico{ background:rgba(255,255,255,.12); border:0; color:#fff; font-size:17px;
-        width:38px; height:38px; border-radius:10px; cursor:pointer; }
-  .bar{ display:flex; gap:8px; padding:12px; }
-  .bar input[type=text]{ flex:1; padding:10px; border:1px solid var(--line);
-        border-radius:10px; background:#fffdf6; font:inherit; }
-  .bar select{ padding:10px; border:1px solid var(--line); border-radius:10px;
-        background:#fffdf6; font:inherit; }
-  .add{ background:var(--accent); color:#fff; border:0; border-radius:10px;
-        width:46px; font-size:22px; cursor:pointer; }
-  .filters{ ;
-        border-radius:10px; background:#fffdf6; font:inherit; }
-  .bar select{ padding:10px; border:1px solid var(--line); border-radius:10px;
-        background:#fffdf6; font:inherit; }
-  .add{ background:var(--accent); color:#fff; border:0; border-radius:10px;
-        width:46px; font-size:22px; cursor:pointer; }
-  .filters{ lor:var(--accent); }
-  .hint{ text-align:center; font-size:12px; color:#8a7f6a; padding:6px 12px 12px; }
-  ul{ list-style:none; margin:0; padding:0; }
-  li{ border-top:1px solid var(--line); padding:10px 12px; }
-  .row{ display:flex; align-items:center; gap:10px; }
-  .row input[type=checkbox]{ width:20px; height:20px; flex:none; }
-  .txt{ flex:1; cursor:pointer; word-break:break-word; }
-  .txt.done{ text-decoration:line-through; opacity:.5; }
-  .meta{ font-size:11px; color:#8a7f6a; display:block; margin-top:3px; }
-  .p-A{ border-inline-end:4px solid #c0392b; }
-  .p-B{ border-inline-end:4px solid #e0a900; }
-  .p-C{ border-inline-end:4px solid #7f8c8d; }
-  .del{ background:none; border:0; color:#c0392b; font-size:16px; cursor:pointer; }
-  .subs{ margin:8px 0 0; padding-inline-start:30px; }
-  .subs li{ border:0; padding:4px 0; }
-  .subadd{ display:flex; gap:6px; margin-top:6px; padding-inline-start:30px; }
-  .subadd input{ flex:1; padding:6px; border:1px solid var(--line);
-        border-radius:8px; background:#fffdf6; font:inherit; }
-  .subadd button{ border:0; background:var(--accent); color:#fff;
-        border-radius:8px; padding:0 12px; cursor:pointer; }
-  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none;
-        align-items:center; justify-content:center; padding:16px; }
-  .modal.open{ display:flex; }
-  .box{ background:var(--card); border-radius:14px; padding:16px; width:100%;
-        max-width:360px; }
-  .box h2{ margin:0 0 12px; font-size:16px; }
-  .box button{ display:block; width:100%; margin-bottom:8px; padding:10px;
-        border:1px solid var(--line); background:#fffdf6; border-radius:10px;
-        font:inherit; cursor:pointer; }
-  .empty{ text-align:center; color:#8a7f6a; padding:30px 12px; }
+:root{--bg:#2c3e44;--card:#fdf6e8;--line:#e6d9bf;--ink:#22343a;--accent:#2c3e44;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,"Segoe UI",sans-serif;}
+#app{max-width:520px;margin:0 auto;background:var(--card);min-height:100vh;}
+header{background:var(--accent);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px;}
+header h1{font-size:17px;margin:0;margin-inline-start:auto;}
+.ico{background:rgba(255,255,255,.12);border:0;color:#fff;font-size:17px;width:38px;height:38px;border-radius:10px;cursor:pointer;}
+.bar{display:flex;gap:8px;padding:12px;}
+.bar input[type=text]{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
+.bar select{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
+.add{background:var(--accent);color:#fff;border:0;border-radius:10px;width:46px;font-size:22px;cursor:pointer;}
+.filters{display:flex;gap:8px;padding:0 12px;}
+.filters button{flex:1;padding:8px;border:1px solid var(--line);background:#fffdf6;border-radius:20px;font:inherit;cursor:pointer;}
+.filters button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.hint{text-align:center;font-size:12px;color:#8a7f6a;padding:6px 12px 12px;}
+ul{list-style:none;margin:0;padding:0;}
+li{border-top:1px solid var(--line);padding:10px 12px;}
+.row{display:flex;align-items:center;gap:10px;}
+.row input[type=checkbox]{width:20px;height:20px;flex:none;}
+.txt{flex:1;cursor:pointer;word-break:break-word;}
+.txt.done{text-decoration:line-through;opacity:.5;}
+.meta{font-size:11px;color:#8a7f6a;display:block;margin-top:3px;}
+.p-A{border-inline-end:4px solid #c0392b;}
+.p-B{border-inline-end:4px solid #e0a900;}
+.p-C{border-inline-end:4px solid #7f8c8d;}
+.del{background:none;border:0;color:#c0392b;font-size:16px;cursor:pointer;}
+.subs{margin:8px 0 0;padding-inline-start:30px;}
+.subs li{border:0;padding:4px 0;}
+.subadd{display:flex;gap:6px;margin-top:6px;padding-inline-start:30px;}
+.subadd input{flex:1;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fffdf6;font:inherit;}
+.subadd button{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:0 12px;cursor:pointer;}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;}
+.modal.open{display:flex;}
+.box{background:var(--card);border-radius:14px;padding:16px;width:100%;max-width:360px;}
+.box h2{margin:0 0 12px;font-size:16px;}
+.box button{display:block;width:100%;margin-bottom:8px;padding:10px;border:1px solid var(--line);background:#fffdf6;border-radius:10px;font:inherit;cursor:pointer;}
+.empty{text-align:center;color:#8a7f6a;padding:30px 12px;}
+
+  li{ transition:background .15s; -webkit-tap-highlight-color:transparent; }
+  li.picked{ outline:2px dashed var(--accent); outline-offset:-3px; }
+  .txt{ -webkit-user-select:none; user-select:none; }
+  .swatches{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+  .sw{ height:46px; border-radius:10px; border:1px solid rgba(0,0,0,.15);
+        cursor:pointer; position:relative; font:inherit; }
+  .sw.sel::after{ content:"\2713"; position:absolute; inset:0; display:flex;
+        align-items:center; justify-content:center; font-size:20px; color:#22343a; }
+  .sw-none{ background:#fffdf6; font-size:12px; color:#8a7f6a; }
+  .legend{ font-size:11px; color:#8a7f6a; padding:0 12px 10px; line-height:1.8; }
 </style>
 </head>
 <body>
 <div id="app">
-  <header>
-    <button class="ico" id="btnSet" aria-label="تنظیمات">&#9881;</button>
-    <button class="ico" id="btnCal" aria-label="تاریخ امروز">&#128197;</button>
-    <h1>دفترچه کارها</h1>
-  </header>
-
-  <div class="bar">
-    <button class="add" id="btnAdd" aria-label="افزودن کار">+</button>
-    <input type="text" id="newTxt" placeholder="کار جدید...">
-    <select id="newPrio" aria-label="اولویت">
-      <option value="B">B</option>
-      <option value="A">A</option>
-      <option value="C">C</option>
-    </select>
-  </div>
-
-  <div class="filters">
-    <button data-f="all" class="on">همه</button>
-    <button data-f="open">انجام‌نشده</button>
-    <button data-f="done">انجام‌شده</button>
-  </div>
-
-  <p class="hint">برای دیدن ریزکارها، روی متن کار <b>دو بار</b> ضربه بزنید</p>
-  <ul id="list"></ul>
+<header>
+<button class="ico" id="btnSet" aria-label="تنظیمات">&#9881;</button>
+<button class="ico" id="btnCal" aria-label="تاریخ امروز">&#128197;</button>
+<h1>دفترچه کارها</h1>
+</header>
+<div class="bar">
+<button class="add" id="btnAdd" aria-label="افزودن کار">+</button>
+<input type="text" id="newTxt" placeholder="کار جدید...">
+<select id="newPrio" aria-label="اولویت">
+<option value="B">B</option>
+<option value="A">A</option>
+<option value="C">C</option>
+</select>
 </div>
-
+<div class="filters">
+<button type="button" data-f="all" class="on">همه</button>
+<button type="button" data-f="open">انجام‌نشده</button>
+<button type="button" data-f="done">انجام‌شده</button>
+</div>
+<p class="hint">برای دیدن ریزکارها، روی متن کار <b>یک بار</b> ضربه بزنید</p>
+<p class="legend">قرمز: فوری و بسیار مهم • نارنجی: مهم • زرد: در نوبت • سبز: کم‌اهمیت<br>
+برای تغییر رنگ، انگشت را روی کار <b>نگه دارید</b> (یا راست‌کلیک کنید)</p>
+<ul id="list"></ul>
+</div>
 <div class="modal" id="mSet">
-  <div class="box">
-    <h2>تنظیمات</h2>
-    <button id="btnExport">دریافت پشتیبان (JSON)</button>
-    <button id="btnImportPick">بازگردانی از فایل</button>
-    <input type="file" id="fileIn" accept=".json,application/json" hidden>
-    <button id="btnClear">پاک کردن همه کارها</button>
-    <button id="btnCloseSet">بستن</button>
-  </div>
+<div class="box">
+<h2>تنظیمات</h2>
+<button type="button" id="btnExport">دریافت پشتیبان (JSON)</button>
+<button type="button" id="btnImportPick">بازگردانی از فایل</button>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+<button type="button" id="btnClear">پاک کردن همه کارها</button>
+<button type="button" id="btnCloseSet">بستن</button>
 </div>
-
+</div>
+<div class="modal" id="mColor">
+<div class="box">
+<h2>رنگ پس‌زمینه کار</h2>
+<div class="swatches" id="swWrap"></div>
+<button type="button" id="btnCloseColor">بستن</button>
+</div>
+</div>
 <script>
 (function(){
-  "use strict";
+"use strict";
+var KEY = "todo.v3";
+var PALETTE = [
+  { id:"red",    name:"قرمز - فوری",  bg:"#ffd7d3" },
+  { id:"orange", name:"نارنجی - مهم", bg:"#ffe4c4" },
+  { id:"yellow", name:"زرد - در نوبت", bg:"#fff4bf" },
+  { id:"green",  name:"سبز - کم‌اهمیت", bg:"#d8f0d3" },
+  { id:"blue",   name:"آبی",          bg:"#d3e6f7" },
+  { id:"purple", name:"بنفش",         bg:"#e6d9f7" },
+  { id:"gray",   name:"خاکستری",      bg:"#e4e4e4" }
+];
+function colorBg(id){
+  for(var i=0;i<PALETTE.length;i++){ if(PALETTE[i].id === id){ return PALETTE[i].bg; } }
+  return "";
+}
+var colorTargetId = null;
+var lpTimer = null;
+var lpFired = false;
+var tasks = [];
+var filter = "all";
+var openId = null;
 
-  var KEY = "todo.v3";
-  var tasks = [];
-  var filter = "all";
-  var openId = null;
+function load(){
+try{
+var raw = localStorage.getItem(KEY);
+tasks = raw ? JSON.parse(raw) : [];
+if(!(tasks instanceof Array)){ tasks = []; }
+}catch(e){ tasks = []; }
+}
 
-  function load(){
-    try{
-      var raw = localStorage.getItem(KEY);
-      tasks = raw ? JSON.parse(raw) : [];
-      if(!(tasks instanceof Array)) tasks = [];
-    }catch(e){ tasks = []; }
-  }
-  function save(){
-    try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
-  }
-  function uid(){
-    return Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36);
-  }
-  function byId(id){
-    for(var i=0;i<tasks.length;i++){ if(tasks[i].id === id) return tasks[i]; }
-    return null;
-  }
+function save(){
+try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+}
 
-  // تاریخ شمسی بدون محاسبه دستی
-  function faDate(iso){
-    var d = iso ? new Date(iso) : new Date();
-    try{
-      return new Intl.DateTimeFormat("fa-IR-u-ca-persian",
-        { year:"numeric", month:"2-digit", day:"2-digit" }).format(d);
-    }catch(e){
-      return d.toISOString().slice(0,10);
+function uid(){
+return Date.now().toString(36) + Math.floor(Math.random()*1000000).toString(36);
+}
+
+function byId(id){
+for(var i=0;i<tasks.length;i++){
+if(tasks[i].id === id){ return tasks[i]; }
+}
+return null;
+}
+
+function faDate(iso){
+var d = iso ? new Date(iso) : new Date();
+try{
+return new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+}catch(e){
+return d.toISOString().slice(0,10);
+}
+}
+
+function trim(s){
+return String(s).replace(/^\s+/,"").replace(/\s+$/,"");
+}
+
+function addTask(){
+var el = document.getElementById("newTxt");
+var t = trim(el.value);
+if(!t){ el.focus(); return; }
+tasks.unshift({
+id: uid(),
+text: t,
+done: false,
+prio: document.getElementById("newPrio").value,
+color: "",
+created: new Date().toISOString(),
+subs: []
+});
+el.value = "";
+save();
+render();
+el.focus();
+}
+
+function addSub(taskId, text){
+var t = byId(taskId);
+if(!t){ return; }
+text = trim(text);
+if(!text){ return; }
+if(!t.subs){ t.subs = []; }
+t.subs.push({ id: uid(), text: text, done: false });
+save();
+render();
+}
+
+function visible(){
+var out = [];
+for(var i=0;i<tasks.length;i++){
+var t = tasks[i];
+if(filter === "open" && t.done){ continue; }
+if(filter === "done" && !t.done){ continue; }
+out.push(t);
+}
+return out;
+}
+
+function render(){
+var ul = document.getElementById("list");
+ul.innerHTML = "";
+var items = visible();
+if(items.length === 0){
+var p = document.createElement("li");
+p.className = "empty";
+p.textContent = "کاری ثبت نشده است.";
+ul.appendChild(p);
+return;
+}
+for(var i=0;i<items.length;i++){
+var t = items[i];
+var li = document.createElement("li");
+li.className = "p-" + (t.prio || "B");
+var bgc = colorBg(t.color);
+if(bgc){ li.style.background = bgc; }
+
+var row = document.createElement("div");
+row.className = "row";
+
+var cb = document.createElement("input");
+cb.type = "checkbox";
+cb.checked = !!t.done;
+cb.setAttribute("aria-label", "انجام شد");
+cb.setAttribute("data-id", t.id);
+cb.setAttribute("data-act", "toggle");
+row.appendChild(cb);
+
+var txt = document.createElement("div");
+txt.className = t.done ? "txt done" : "txt";
+txt.setAttribute("data-id", t.id);
+txt.setAttribute("data-act", "open");
+txt.appendChild(document.createTextNode(t.text));
+
+var meta = document.createElement("span");
+meta.className = "meta";
+var n = t.subs ? t.subs.length : 0;
+meta.textContent = faDate(t.created) + (n ? "  -  " + n + " ریزکار" : "");
+txt.appendChild(meta);
+row.appendChild(txt);
+
+var del = document.createElement("button");
+del.type = "button";
+del.className = "del";
+del.textContent = "حذف";
+del.setAttribute("aria-label", "حذف کار");
+del.setAttribute("data-id", t.id);
+del.setAttribute("data-act", "del");
+row.appendChild(del);
+
+li.appendChild(row);
+
+if(openId === t.id){
+var subs = t.subs || [];
+var sul = document.createElement("ul");
+sul.className = "subs";
+for(var j=0;j<subs.length;j++){
+var s = subs[j];
+var sli = document.createElement("li");
+var srow = document.createElement("div");
+srow.className = "row";
+
+var scb = document.createElement("input");
+scb.type = "checkbox";
+scb.checked = !!s.done;
+scb.setAttribute("aria-label", "ریزکار انجام شد");
+scb.setAttribute("data-id", t.id);
+scb.setAttribute("data-sub", s.id);
+scb.setAttribute("data-act", "subtoggle");
+srow.appendChild(scb);
+
+var stx = document.createElement("span");
+stx.className = s.done ? "txt done" : "txt";
+stx.textContent = s.text;
+srow.appendChild(stx);
+
+var sdel = document.createElement("button");
+sdel.type = "button";
+sdel.className = "del";
+sdel.textContent = "×";
+sdel.setAttribute("aria-label", "حذف ریزکار");
+sdel.setAttribute("data-id", t.id);
+sdel.setAttribute("data-sub", s.id);
+sdel.setAttribute("data-act", "subdel");
+srow.appendChild(sdel);
+
+sli.appendChild(srow);
+sul.appendChild(sli);
+}
+li.appendChild(sul);
+
+var wrap = document.createElement("div");
+wrap.className = "subadd";
+var inp = document.createElement("input");
+inp.type = "text";
+inp.placeholder = "ریزکار جدید...";
+inp.setAttribute("aria-label", "ریزکار جدید");
+var bt = document.createElement("button");
+bt.type = "button";
+bt.textContent = "افزودن";
+bindSub(t.id, inp, bt);
+wrap.appendChild(inp);
+wrap.appendChild(bt);
+li.appendChild(wrap);
+}
+ul.appendChild(li);
+}
+}
+
+function bindSub(id, inputEl, btnEl){
+btnEl.onclick = function(){ addSub(id, inputEl.value); };
+inputEl.onkeydown = function(ev){
+if(ev.keyCode === 13){ addSub(id, inputEl.value); }
+};
+}
+
+var listEl = document.getElementById("list");
+
+function taskIdFrom(el){
+  while(el && el !== listEl){
+    if(el.getAttribute && el.getAttribute("data-id") && el.getAttribute("data-act") !== "subtoggle" && el.getAttribute("data-act") !== "subdel"){ return el.getAttribute("data-id"); }
+    if(el.tagName === "LI" && el.parentNode === listEl){
+      var d = el.querySelector("[data-act=open]");
+      return d ? d.getAttribute("data-id") : null;
     }
+    el = el.parentNode;
   }
+  return null;
+}
+function startPress(ev){
+  var tag = ev.target.tagName;
+  if(tag === "INPUT" || tag === "BUTTON"){ return; }
+  var id = taskIdFrom(ev.target);
+  if(!id){ return; }
+  lpFired = false;
+  clearTimeout(lpTimer);
+  lpTimer = setTimeout(function(){
+    lpFired = true;
+    if(navigator.vibrate){ try{ navigator.vibrate(30); }catch(e){} }
+    openColor(id);
+  }, 550);
+}
+function cancelPress(){ clearTimeout(lpTimer); }
 
-  function addTask(){
-    var el = document.getElementById("newTxt");
-    var t = el.value.replace(/^\s+|\s+$/g,"");
-    if(!t) { el.focus(); return; }
-    tasks.unshift({
-      id: uid(),
-      text: t,
-      done: false,
-      prio: document.getElementById("newPrio").value,
-      created: new Date().toISOString(),
-      subs: []
-    });
-    el.value = "";
-    save(); render(); el.focus();
+listEl.onclick = function(ev){
+  if(lpFired){ lpFired = false; return; }
+  var el = ev.target || ev.srcElement;
+var act = el.getAttribute ? el.getAttribute("data-act") : null;
+if(!act){ return; }
+var t = byId(el.getAttribute("data-id"));
+if(!t){ return; }
+if(act === "toggle"){
+t.done = el.checked;
+save();
+render();
+}else if(act === "del"){
+if(confirm("این کار حذف شود؟")){
+for(var i=0;i<tasks.length;i++){
+if(tasks[i].id === t.id){ tasks.splice(i,1); break; }
+}
+save();
+render();
+}
+}else if(act === "open"){
+openId = (openId === t.id) ? null : t.id;
+render();
+}else if(act === "subtoggle" || act === "subdel"){
+var subs = t.subs || [];
+var sid = el.getAttribute("data-sub");
+for(var k=0;k<subs.length;k++){
+if(subs[k].id === sid){
+if(act === "subtoggle"){ subs[k].done = el.checked; }
+else { subs.splice(k,1); }
+break;
+}
+}
+save();
+render();
+}
+};
+
+document.getElementById("btnAdd").onclick = addTask;
+document.getElementById("newTxt").onkeydown = function(ev){
+if(ev.keyCode === 13){ addTask(); }
+};
+
+var fbtns = document.querySelectorAll(".filters button");
+for(var fi=0;fi<fbtns.length;fi++){
+fbtns[fi].onclick = function(){
+filter = this.getAttribute("data-f");
+for(var fj=0;fj<fbtns.length;fj++){ fbtns[fj].className = ""; }
+this.className = "on";
+render();
+};
+}
+
+document.getElementById("btnCal").onclick = function(){
+alert("امروز: " + faDate(null));
+};
+
+var mSet = document.getElementById("mSet");
+document.getElementById("btnSet").onclick = function(){ mSet.className = "modal open"; };
+document.getElementById("btnCloseSet").onclick = function(){ mSet.className = "modal"; };
+mSet.onclick = function(ev){
+if((ev.target || ev.srcElement) === mSet){ mSet.className = "modal"; }
+};
+
+document.getElementById("btnExport").onclick = function(){
+var blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
+var a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "todo-backup.json";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+};
+
+document.getElementById("btnImportPick").onclick = function(){
+document.getElementById("fileIn").click();
+};
+
+document.getElementById("fileIn").onchange = function(){
+var f = this.files && this.files[0];
+if(!f){ return; }
+var r = new FileReader();
+r.onload = function(){
+try{
+var data = JSON.parse(r.result);
+if(data instanceof Array){
+tasks = data;
+save();
+render();
+mSet.className = "modal";
+alert("بازگردانی انجام شد.");
+}else{
+alert("ساختار فایل درست نیست.");
+}
+}catch(e){ alert("فایل قابل خواندن نیست."); }
+};
+r.readAsText(f);
+this.value = "";
+};
+
+document.getElementById("btnClear").onclick = function(){
+if(confirm("همه کارها پاک شوند؟ این کار برگشت‌پذیر نیست.")){
+tasks = [];
+openId = null;
+save();
+render();
+mSet.className = "modal";
+}
+};
+
+function openColor(id){
+  colorTargetId = id;
+  var t = byId(id);
+  var wrap = document.getElementById("swWrap");
+  wrap.innerHTML = "";
+  for(var i=0;i<PALETTE.length;i++){
+    var c = PALETTE[i];
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "sw" + (t && t.color === c.id ? " sel" : "");
+    b.style.background = c.bg;
+    b.title = c.name;
+    b.setAttribute("aria-label", c.name);
+    b.setAttribute("data-color", c.id);
+    wrap.appendChild(b);
   }
+  var n = document.createElement("button");
+  n.type = "button";
+  n.className = "sw sw-none" + (t && !t.color ? " sel" : "");
+  n.textContent = "بدون رنگ";
+  n.setAttribute("aria-label", "حذف رنگ");
+  n.setAttribute("data-color", "");
+  wrap.appendChild(n);
+  document.getElementById("mColor").className = "modal open";
+}
 
-  function addSub(taskId, text){
-    var t = byId(taskId);
-    if(!t) return;
-    text = text.replace(/^\s+|\s+$/g,"");
-    if(!text) return;
-    if(!t.subs) t.subs = [];
-    t.subs.push({ id: uid(), text: text, done: false });
-    save(); render();
-  }
+function setColor(cid){
+  var t = byId(colorTargetId);
+  if(t){ t.color = cid || ""; save(); render(); }
+  document.getElementById("mColor").className = "modal";
+}
 
-  function visible(){
-    var out = [];
-    for(var i=0;i<tasks.length;i++){
-      var t = tasks[i];
-      if(filter === "open" && t.done) continue;
-      if(filter === "done" && !t.done) continue;
-      out.push(t);
-    }
-    return out;
-  }
+document.getElementById("swWrap").addEventListener("click", function(ev){
+  var el = ev.target;
+  if(!el.getAttribute || typeof el.getAttribute("data-color") === "undefined"){ return; }
+  setColor(el.getAttribute("data-color"));
+});
 
-  function render(){
-    var ul = document.getElementById("list");
-    ul.innerHTML = "";
-    var items = visible();
+var mColor = document.getElementById("mColor");
+document.getElementById("btnCloseColor").onclick = function(){ mColor.className = "modal"; };
+mColor.onclick = function(ev){ if((ev.target || ev.srcElement) === mColor){ mColor.className = "modal"; } };
 
-    if(items.length === 0){
-      var p = document.createElement("li");
-      p.className = "empty";
-      p.textContent = "کاری ثبت نشده است.";
-      ul.appendChild(p);
-      return;
-    }
+listEl.addEventListener("touchstart", startPress, false);
+listEl.addEventListener("touchend", cancelPress, false);
+listEl.addEventListener("touchmove", cancelPress, false);
+listEl.addEventListener("touchcancel", cancelPress, false);
+listEl.addEventListener("mousedown", startPress, false);
+listEl.addEventListener("mouseup", cancelPress, false);
+listEl.addEventListener("mouseleave", cancelPress, false);
+listEl.addEventListener("contextmenu", function(ev){
+  var id = taskIdFrom(ev.target);
+  if(id){ ev.preventDefault(); cancelPress(); openColor(id); }
+}, false);
 
-    for(var i=0;i<items.length;i++){
-      var t = items[i];
-      var li = document.createElement("li");
-      li.className = "p-" + (t.prio || "B");
+load();
+render();
 
-      var row = document.createElement("div");
-      row.className = "row";
-
-      var cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = !!t.done;
-      cb.setAttribute("aria-label", "انجام شد");
-      cb.dataset.id = t.id;
-      cb.dataset.act = "toggle";
-      row.appendChild(cb);
-
-      var txt = document.createElement("div");
-      txt.className = "txt" + (t.done ? " done" : "");
-      txt.dataset.id = t.id;
-      txt.dataset.act = "open";
-      txt.textContent = t.text;
-
-      var meta = document.createElement("span");
-      meta.className = "meta";
-      var n = t.subs ? t.subs.length : 0;
-      meta.textContent = faDate(t.created) + (n ? "  •  " + n + " ریزکار" : "");
-      txt.appendChild(meta);
-      row.appendChild(txt);
-
-      var del = document.createElement("button");
-      del.className = "del";
-      del.type = "button";
-      del.textContent = "🗑";
-      del.setAttribute("aria-label", "حذف کار");
-      del.dataset.id = t.id;
-      del.dataset.act = "del";
-      row.appendChild(del);
-
-      li.appendChild(row);
-
-      if(openId === t.id){
-        var sul = document.createElement("ul");
-        sul.className = "subs";
-        var subs = t.subs || [];
-        for(var j=0;j<subs.length;j++){
-          var s = subs[j];
-          var sli = document.createElement("li");
-          var srow = document.createElement("div");
-          srow.className = "row";
-
-          var scb = document.createElement("input");
-          scb.type = "checkbox";
-          scb.checked = !!s.done;
-          scb.setAttribute("aria-label", "ریزکار انجام شد");
-          scb.dataset.id = t.id;
-          scb.dataset.sub = s.id;
-          scb.dataset.act = "subtoggle";
-          srow.appendChild(scb);
-
-          var stx = document.createElement("span");
-          stx.className = "txt" + (s.done ? " done" : "");
-          stx.textContent = s.text;
-          srow.appendChild(stx);
-
-          var sdel = document.createElement("button");
-          sdel.className = "del";
-          sdel.type = "button";
-          sdel.textContent = "×";
-          sdel.setAttribute("aria-label", "حذف ریزکار");
-          sdel.dataset.id = t.id;
-          sdel.dataset.sub = s.id;
-          sdel.dataset.act = "subdel";
-          srow.appendChild(sdel);
-
-          sli.appendChild(srow);
-          sul.appendChild(sli);
-        }
-        li.appendChild(sul);
-
-        var wrap = document.createElement("div");
-        wrap.className = "subadd";
-        var inp = document.createElement("input");
-        inp.type = "text";
-        inp.placeholder = "ریزکار جدید...";
-        inp.setAttribute("aria-label", "ریزکار جدید");
-        var bt = document.createElement("button");
-        bt.type = "button";
-        bt.textContent = "افزودن";
-        (function(id, inputEl){
-          bt.onclick = function(){ addSub(id, inputEl.value); };
-          inputEl.onkeydown = function(ev){
-            if(ev.key === "Enter"){ addSub(id, inputEl.value); }
-          };
-        })(t.id, inp);
-        wrap.appendChild(inp);
-        wrap.appendChild(bt);
-        li.appendChild(wrap);
-      }
-
-      ul.appendChild(li);
-    }
-  }
-
-  // یک شنونده برای کل لیست
-  document.getElementById("list").addEventListener("click", function(ev){
-    var el = ev.target;
-    var act = el.dataset ? el.dataset.act : null;
-    if(!act) return;
-    var t = byId(el.dataset.id);
-    if(!t) return;
-
-    if(act === "toggle"){ t.done = el.checked; save(); render(); }
-    else if(act === "del"){
-      if(confirm("این کار حذف شود؟")){
-        for(var i=0;i<tasks.length;i++){
-          if(tasks[i].id === t.id){ tasks.splice(i,1); break; }
-        }
-        save(); render();
-      }
-    }
-    else if(act === "open"){
-      openId = (openId === t.id) ? null : t.id;
-      render();
-    }
-    else if(act === "subtoggle" || act === "subdel"){
-      var subs = t.subs || [];
-      for(var k=0;k<subs.length;k++){
-        if(subs[k].id === el.dataset.sub){
-          if(act === "subtoggle") subs[k].done = el.checked;
-          else subs.splice(k,1);
-          break;
-        }
-      }
-      save(); render();
-    }
-  });
-
-  document.getElementById("btnAdd").onclick = addTask;
-  document.getElementById("newTxt").onkeydown = function(ev){
-    if(ev.key === "Enter") addTask();
-  };
-
-  var fbtns = document.querySelectorAll(".filters button");
-  for(var i=0;i<fbtns.length;i++){
-    fbtns[i].onclick = function(){
-      filter = this.dataset.f;
-      for(var j=0;j<fbtns.length;j++) fbtns[j].className = "";
-      this.className = "on";
-      render();
-    };
-  }
-
-  document.getElementById("btnCal").onclick = function(){
-    alert("امروز: " + faDate(null));
-  };
-
-  var mSet = document.getElementById("mSet");
-  document.getElementById("btnSet").onclick = function(){ mSet.className = "modal open"; };
-  document.getElementById("btnCloseSet").onclick = function(){ mSet.className = "modal"; };
-  mSet.onclick = function(ev){ if(ev.target === mSet) mSet.className = "modal"; };
-
-  document.getElementById("btnExport").onclick = function(){
-    var blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "todo-backup.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  document.getElementById("btnImportPick").onclick = function(){
-    document.getElementById("fileIn").click();
-  };
-  document.getElementById("fileIn").onchange = function(){
-    var f = this.files && this.files[0];
-    if(!f) return;
-    var r = new FileReader();
-    r.onload = function(){
-      try{
-        var data = JSON.parse(r.result);
-        if(data instanceof Array){
-          tasks = data;
-          save(); render();
-          mSet.className = "modal";
-          alert("بازگردانی انجام شد.");
-        } else {
-          alert("ساختار فایل درست نیست.");
-        }
-      }catch(e){ alert("فایل قابل خواندن نیست."); }
-    };
-    r.readAsText(f);
-    this.value = "";
-  };
-
-  document.getElementById("btnClear").onclick = function(){
-    if(confirm("همه کارها پاک شوند؟ این کار برگشت‌پذیر نیست.")){
-      tasks = []; openId = null; save(); render();
-      mSet.className = "modal";
-    }
-  };
-
-  load();
-  render();
-
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", function(){
-      navigator.serviceWorker.register("sw.js").catch(function(){});
-    });
-  }
+if("serviceWorker" in navigator){
+window.addEventListener("load", function(){
+navigator.serviceWorker.register("sw.js")["catch"](function(){});
+});
+}
 })();
 </script>
 </body>
