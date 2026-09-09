@@ -5,6 +5,7 @@
   "start_url": "/todo-app/",
   "scope": "/todo-app/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#c0392b",
   "icons": [
