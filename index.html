@@ -59,6 +59,10 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 .box textarea{width:100%;min-height:80px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;resize:vertical;margin-bottom:10px;}
 .prioPick{display:flex;gap:8px;margin-bottom:12px;}
 .prioPick button{margin:0;text-align:center;}
+.repPick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.box .repPick button{margin:0;padding:8px 2px;text-align:center;font-size:13px;}
+.repPick button.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.rep{display:inline-block;font-size:11px;background:#e3eef2;color:#2c3e44;border-radius:6px;padding:0 6px;margin-inline-start:4px;}
 .prioPick button.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
 .empty{text-align:center;color:var(--muted);padding:30px 12px;}
 .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
@@ -102,7 +106,7 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" data-f="done">انجام‌شده</button>
 </div>
 <p class="hint">برای جابه‌جایی، دستگیره <b>&#9776;</b> را بگیرید و بالا یا پایین بکشید • برای دیدن ریزکارها روی متن کار ضربه بزنید</p>
-<p class="legend">برای ویرایش، رنگ، یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
+<p class="legend">برای ویرایش، تکرار (روزانه/هفتگی/ماهانه)، رنگ یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
 <ul id="list"></ul>
 </div>
 
@@ -120,7 +124,7 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <div class="modal" id="mMenu">
 <div class="box">
 <h2 id="menuTitle"></h2>
-<button type="button" id="btnEdit">&#9998;&nbsp; ویرایش متن و اولویت</button>
+<button type="button" id="btnEdit">&#9998;&nbsp; ویرایش متن، اولویت و تکرار</button>
 <button type="button" id="btnTop">&#11014;&nbsp; انتقال به اول لیست</button>
 <button type="button" id="btnBottom">&#11015;&nbsp; انتقال به آخر لیست</button>
 <h3>رنگ پس‌زمینه کار</h3>
@@ -133,10 +137,18 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <div class="box">
 <h2>ویرایش کار</h2>
 <textarea id="editTxt" aria-label="متن کار"></textarea>
+<h3>اولویت</h3>
 <div class="prioPick" id="prioPick">
 <button type="button" data-p="A">A</button>
 <button type="button" data-p="B">B</button>
 <button type="button" data-p="C">C</button>
+</div>
+<h3>تکرار</h3>
+<div class="repPick" id="repPick">
+<button type="button" data-r="">بدون تکرار</button>
+<button type="button" data-r="daily">روزانه</button>
+<button type="button" data-r="weekly">هفتگی</button>
+<button type="button" data-r="monthly">ماهانه</button>
 </div>
 <button type="button" id="btnEditSave" class="primary">ذخیره</button>
 <button type="button" id="btnEditCancel">انصراف</button>
@@ -167,6 +179,9 @@ var query = "";
 var openId = null;
 var menuId = null;
 var editPrio = "B";
+var editRep = "";
+var REP_NAME = { daily:"روزانه", weekly:"هفتگی", monthly:"ماهانه" };
+var REP_NEXT = { daily:"فردا", weekly:"شنبه", monthly:"اول ماه بعد" };
 var lpTimer = null;
 var lpFired = false;
 var lastDeleted = null;
@@ -212,6 +227,49 @@ function faDate(iso){
   }catch(e){ return d.toISOString().slice(0,10); }
 }
 function trim(s){ return String(s).replace(/^\s+/,"").replace(/\s+$/,""); }
+
+/* ---------- کارهای تکراری ---------- */
+function ymd(d){ return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate(); }
+function persianYM(d){
+  try{
+    var parts = new Intl.DateTimeFormat("en-u-ca-persian",{year:"numeric",month:"numeric"}).formatToParts(d);
+    var y = "", m = "";
+    for(var i=0;i<parts.length;i++){
+      if(parts[i].type === "year"){ y = parts[i].value; }
+      if(parts[i].type === "month"){ m = parts[i].value; }
+    }
+    if(y && m){ return y + "-" + m; }
+  }catch(e){}
+  return d.getFullYear() + "-" + (d.getMonth()+1);
+}
+function periodKey(rep, d){
+  if(rep === "daily"){ return ymd(d); }
+  if(rep === "weekly"){
+    /* هفته از شنبه شروع می‌شود */
+    var s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    s.setDate(s.getDate() - ((s.getDay() + 1) % 7));
+    return ymd(s);
+  }
+  if(rep === "monthly"){ return persianYM(d); }
+  return "";
+}
+/* کارهای تکراری انجام‌شده‌ای که دوره‌شان تمام شده دوباره باز می‌شوند */
+function resetRecurring(){
+  var now = new Date(), changed = false;
+  for(var i=0;i<tasks.length;i++){
+    var t = tasks[i];
+    if(!t.repeat || !t.done || !t.doneAt){ continue; }
+    if(periodKey(t.repeat, new Date(t.doneAt)) !== periodKey(t.repeat, now)){
+      t.done = false;
+      delete t.doneAt;
+      var subs = t.subs || [];
+      for(var k=0;k<subs.length;k++){ subs[k].done = false; }
+      changed = true;
+    }
+  }
+  if(changed){ save(); }
+  return changed;
+}
 
 /* ---------- افزودن ---------- */
 function addTask(){
@@ -310,6 +368,14 @@ function render(){
     var n = subs.length, nd = 0;
     for(var k=0;k<n;k++){ if(subs[k].done){ nd++; } }
     meta.textContent = faDate(t.created) + (n ? "  -  " + faNum(nd) + " از " + faNum(n) + " ریزکار" : "");
+    if(t.repeat && REP_NAME[t.repeat]){
+      var rb = document.createElement("span");
+      rb.className = "rep";
+      rb.setAttribute("data-id", t.id);
+      rb.setAttribute("data-act", "open");
+      rb.textContent = "\uD83D\uDD01 " + REP_NAME[t.repeat] + (t.done ? " \u2022 دوباره " + REP_NEXT[t.repeat] : "");
+      meta.appendChild(rb);
+    }
     txt.appendChild(meta);
     if(n){
       var pg = document.createElement("span");
@@ -587,11 +653,21 @@ $("btnEdit").onclick = function(){
   if(!t){ return; }
   $("editTxt").value = t.text;
   setEditPrio(t.prio || "B");
+  setEditRep(t.repeat || "");
   openModal(mEdit);
   setTimeout(function(){ $("editTxt").focus(); }, 50);
 };
 
 /* ---------- ویرایش ---------- */
+function setEditRep(r){
+  editRep = r;
+  var bs = $("repPick").children;
+  for(var i=0;i<bs.length;i++){ bs[i].className = bs[i].getAttribute("data-r") === r ? "sel" : ""; }
+}
+$("repPick").onclick = function(ev){
+  var r = ev.target.getAttribute ? ev.target.getAttribute("data-r") : null;
+  if(r !== null){ setEditRep(r); }
+};
 function setEditPrio(p){
   editPrio = p;
   var bs = $("prioPick").children;
@@ -605,7 +681,12 @@ $("btnEditSave").onclick = function(){
   var t = byId(menuId);
   var v = trim($("editTxt").value);
   if(!v){ $("editTxt").focus(); return; }
-  if(t){ t.text = v; t.prio = editPrio; save(); render(); }
+  if(t){
+    t.text = v; t.prio = editPrio;
+    if(editRep){ t.repeat = editRep; if(t.done && !t.doneAt){ t.doneAt = new Date().toISOString(); } }
+    else { delete t.repeat; }
+    save(); render();
+  }
   closeModal(mEdit);
 };
 $("btnEditCancel").onclick = function(){ closeModal(mEdit); };
@@ -619,7 +700,9 @@ listEl.onclick = function(ev){
   var t = byId(el.getAttribute("data-id"));
   if(!t){ return; }
   if(act === "toggle"){
-    t.done = el.checked; save(); render();
+    t.done = el.checked;
+    if(t.done){ t.doneAt = new Date().toISOString(); } else { delete t.doneAt; }
+    save(); render();
   }else if(act === "del"){
     deleteTask(t.id);
   }else if(act === "open"){
@@ -727,8 +810,14 @@ $("btnBackupLater").onclick = function(){
 };
 
 load();
+resetRecurring();
 render();
 checkBackup();
+/* وقتی اپ دوباره باز یا از پس‌زمینه برگردانده می‌شود، و هر دقیقه */
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden && !drag && resetRecurring()){ render(); }
+});
+setInterval(function(){ if(!drag && resetRecurring()){ render(); } }, 60000);
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", function(){
