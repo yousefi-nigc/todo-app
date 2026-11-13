@@ -8,54 +8,71 @@
 <meta name="theme-color" content="#2c3e44">
 <link rel="icon" href="icon-192.png">
 <style>
-:root{--bg:#2c3e44;--card:#fdf6e8;--line:#e6d9bf;--ink:#22343a;--accent:#2c3e44;}
+:root{--bg:#2c3e44;--card:#fdf6e8;--line:#e6d9bf;--ink:#22343a;--accent:#2c3e44;--muted:#8a7f6a;}
 *{box-sizing:border-box;}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,"Segoe UI",sans-serif;}
-#app{max-width:520px;margin:0 auto;background:var(--card);min-height:100vh;}
-header{background:var(--accent);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px;}
+#app{max-width:520px;margin:0 auto;background:var(--card);min-height:100vh;padding-bottom:70px;}
+header{background:var(--accent);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5;}
 header h1{font-size:17px;margin:0;margin-inline-start:auto;}
 .ico{background:rgba(255,255,255,.12);border:0;color:#fff;font-size:17px;width:38px;height:38px;border-radius:10px;cursor:pointer;}
+.ico.on{background:rgba(255,255,255,.32);}
 .bar{display:flex;gap:8px;padding:12px;}
-.bar input[type=text]{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
+.bar input[type=text],.bar input[type=search]{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
 .bar select{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
 .add{background:var(--accent);color:#fff;border:0;border-radius:10px;width:46px;font-size:22px;cursor:pointer;}
+#searchBar{display:none;padding-top:0;}
+#searchBar.open{display:flex;}
 .filters{display:flex;gap:8px;padding:0 12px;}
 .filters button{flex:1;padding:8px;border:1px solid var(--line);background:#fffdf6;border-radius:20px;font:inherit;cursor:pointer;}
 .filters button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
-.hint{text-align:center;font-size:12px;color:#8a7f6a;padding:6px 12px 12px;}
+.hint{text-align:center;font-size:12px;color:var(--muted);padding:6px 12px 4px;margin:0;line-height:1.8;}
+.legend{font-size:11px;color:var(--muted);padding:0 12px 10px;line-height:1.8;margin:0;text-align:center;}
 ul{list-style:none;margin:0;padding:0;}
 li{border-top:1px solid var(--line);padding:10px 12px;}
+#list > li{transition:background .15s, box-shadow .15s;-webkit-tap-highlight-color:transparent;background:var(--card);position:relative;}
+#list > li.dragging{box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:3;opacity:.95;outline:2px dashed var(--accent);outline-offset:-3px;}
 .row{display:flex;align-items:center;gap:10px;}
 .row input[type=checkbox]{width:20px;height:20px;flex:none;}
-.txt{flex:1;cursor:pointer;word-break:break-word;}
+.handle{flex:none;width:30px;height:34px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9c917a;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;border-radius:8px;}
+.handle:active{background:rgba(0,0,0,.06);cursor:grabbing;}
+.txt{flex:1;cursor:pointer;word-break:break-word;-webkit-user-select:none;user-select:none;}
 .txt.done{text-decoration:line-through;opacity:.5;}
-.meta{font-size:11px;color:#8a7f6a;display:block;margin-top:3px;}
+.meta{font-size:11px;color:var(--muted);display:block;margin-top:3px;}
+.prog{display:block;height:4px;background:rgba(0,0,0,.08);border-radius:3px;margin-top:5px;overflow:hidden;max-width:160px;}
+.prog i{display:block;height:100%;background:#27ae60;}
 .p-A{border-inline-end:4px solid #c0392b;}
 .p-B{border-inline-end:4px solid #e0a900;}
 .p-C{border-inline-end:4px solid #7f8c8d;}
-.del{background:none;border:0;color:#c0392b;font-size:16px;cursor:pointer;}
-.subs{margin:8px 0 0;padding-inline-start:30px;}
+.del{background:none;border:0;color:#c0392b;font-size:16px;cursor:pointer;font-family:inherit;}
+.subs{margin:8px 0 0;padding-inline-start:70px;}
 .subs li{border:0;padding:4px 0;}
-.subadd{display:flex;gap:6px;margin-top:6px;padding-inline-start:30px;}
-.subadd input{flex:1;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fffdf6;font:inherit;}
-.subadd button{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:0 12px;cursor:pointer;}
-.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;}
+.subadd{display:flex;gap:6px;margin-top:6px;padding-inline-start:70px;}
+.subadd input{flex:1;min-width:0;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fffdf6;font:inherit;}
+.subadd button{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:0 12px;cursor:pointer;font:inherit;}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:20;}
 .modal.open{display:flex;}
-.box{background:var(--card);border-radius:14px;padding:16px;width:100%;max-width:360px;}
-.box h2{margin:0 0 12px;font-size:16px;}
-.box button{display:block;width:100%;margin-bottom:8px;padding:10px;border:1px solid var(--line);background:#fffdf6;border-radius:10px;font:inherit;cursor:pointer;}
-.empty{text-align:center;color:#8a7f6a;padding:30px 12px;}
-
-  li{ transition:background .15s; -webkit-tap-highlight-color:transparent; }
-  li.picked{ outline:2px dashed var(--accent); outline-offset:-3px; }
-  .txt{ -webkit-user-select:none; user-select:none; }
-  .swatches{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
-  .sw{ height:46px; border-radius:10px; border:1px solid rgba(0,0,0,.15);
-        cursor:pointer; position:relative; font:inherit; }
-  .sw.sel::after{ content:"\2713"; position:absolute; inset:0; display:flex;
-        align-items:center; justify-content:center; font-size:20px; color:#22343a; }
-  .sw-none{ background:#fffdf6; font-size:12px; color:#8a7f6a; }
-  .legend{ font-size:11px; color:#8a7f6a; padding:0 12px 10px; line-height:1.8; }
+.box{background:var(--card);border-radius:14px;padding:16px;width:100%;max-width:360px;max-height:92vh;overflow:auto;}
+.box h2{margin:0 0 12px;font-size:16px;word-break:break-word;}
+.box h3{margin:6px 0 10px;font-size:13px;color:var(--muted);font-weight:normal;}
+.box button{display:block;width:100%;margin-bottom:8px;padding:10px;border:1px solid var(--line);background:#fffdf6;border-radius:10px;font:inherit;cursor:pointer;text-align:start;}
+.box button.primary{background:var(--accent);color:#fff;border-color:var(--accent);text-align:center;}
+.box textarea{width:100%;min-height:80px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;resize:vertical;margin-bottom:10px;}
+.prioPick{display:flex;gap:8px;margin-bottom:12px;}
+.prioPick button{margin:0;text-align:center;}
+.prioPick button.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.empty{text-align:center;color:var(--muted);padding:30px 12px;}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.box .sw{height:46px;margin:0;border-radius:10px;border:1px solid rgba(0,0,0,.15);cursor:pointer;position:relative;font:inherit;padding:0;}
+.sw.sel::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#22343a;}
+.box .sw-none{background:#fffdf6;font-size:12px;color:var(--muted);text-align:center;}
+#backupBar{display:none;margin:10px 12px 0;padding:10px 12px;border-radius:10px;background:#fff1d6;border:1px solid #f0d49a;font-size:13px;align-items:center;gap:8px;}
+#backupBar.open{display:flex;}
+#backupBar span{flex:1;}
+#backupBar button{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer;}
+#backupBar button.x{background:none;color:var(--muted);padding:6px;}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(120px);background:#22343a;color:#fff;border-radius:12px;padding:10px 14px;display:flex;gap:14px;align-items:center;font-size:14px;transition:transform .2s;z-index:30;max-width:92vw;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast button{background:none;border:0;color:#ffd166;font:inherit;font-weight:bold;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -63,8 +80,10 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <header>
 <button class="ico" id="btnSet" aria-label="تنظیمات">&#9881;</button>
 <button class="ico" id="btnCal" aria-label="تاریخ امروز">&#128197;</button>
+<button class="ico" id="btnSearch" aria-label="جستجو">&#128269;</button>
 <h1>دفترچه کارها</h1>
 </header>
+<div id="backupBar"><span id="backupMsg"></span><button type="button" id="btnBackupNow">پشتیبان</button><button type="button" class="x" id="btnBackupLater" aria-label="بعداً">&#10005;</button></div>
 <div class="bar">
 <button class="add" id="btnAdd" aria-label="افزودن کار">+</button>
 <input type="text" id="newTxt" placeholder="کار جدید...">
@@ -74,16 +93,19 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <option value="C">C</option>
 </select>
 </div>
+<div class="bar" id="searchBar">
+<input type="search" id="searchTxt" placeholder="جستجو در کارها و ریزکارها...">
+</div>
 <div class="filters">
 <button type="button" data-f="all" class="on">همه</button>
 <button type="button" data-f="open">انجام‌نشده</button>
 <button type="button" data-f="done">انجام‌شده</button>
 </div>
-<p class="hint">برای دیدن ریزکارها، روی متن کار <b>یک بار</b> ضربه بزنید</p>
-<p class="legend">قرمز: فوری و بسیار مهم • نارنجی: مهم • زرد: در نوبت • سبز: کم‌اهمیت<br>
-برای تغییر رنگ، انگشت را روی کار <b>نگه دارید</b> (یا راست‌کلیک کنید)</p>
+<p class="hint">برای جابه‌جایی، دستگیره <b>&#9776;</b> را بگیرید و بالا یا پایین بکشید • برای دیدن ریزکارها روی متن کار ضربه بزنید</p>
+<p class="legend">برای ویرایش، رنگ، یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
 <ul id="list"></ul>
 </div>
+
 <div class="modal" id="mSet">
 <div class="box">
 <h2>تنظیمات</h2>
@@ -91,20 +113,45 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" id="btnImportPick">بازگردانی از فایل</button>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 <button type="button" id="btnClear">پاک کردن همه کارها</button>
-<button type="button" id="btnCloseSet">بستن</button>
+<button type="button" id="btnCloseSet" class="primary">بستن</button>
 </div>
 </div>
-<div class="modal" id="mColor">
+
+<div class="modal" id="mMenu">
 <div class="box">
-<h2>رنگ پس‌زمینه کار</h2>
+<h2 id="menuTitle"></h2>
+<button type="button" id="btnEdit">&#9998;&nbsp; ویرایش متن و اولویت</button>
+<button type="button" id="btnTop">&#11014;&nbsp; انتقال به اول لیست</button>
+<button type="button" id="btnBottom">&#11015;&nbsp; انتقال به آخر لیست</button>
+<h3>رنگ پس‌زمینه کار</h3>
 <div class="swatches" id="swWrap"></div>
-<button type="button" id="btnCloseColor">بستن</button>
+<button type="button" id="btnCloseMenu" class="primary">بستن</button>
 </div>
 </div>
+
+<div class="modal" id="mEdit">
+<div class="box">
+<h2>ویرایش کار</h2>
+<textarea id="editTxt" aria-label="متن کار"></textarea>
+<div class="prioPick" id="prioPick">
+<button type="button" data-p="A">A</button>
+<button type="button" data-p="B">B</button>
+<button type="button" data-p="C">C</button>
+</div>
+<button type="button" id="btnEditSave" class="primary">ذخیره</button>
+<button type="button" id="btnEditCancel">انصراف</button>
+</div>
+</div>
+
+<div id="toast"><span id="toastMsg"></span><button type="button" id="btnUndo">بازگردانی</button></div>
+
 <script>
 (function(){
 "use strict";
 var KEY = "todo.v3";
+var BACKUP_KEY = "todo.lastBackup";
+var SNOOZE_KEY = "todo.backupSnooze";
+var BACKUP_DAYS = 7;
 var PALETTE = [
   { id:"red",    name:"قرمز - فوری",  bg:"#ffd7d3" },
   { id:"orange", name:"نارنجی - مهم", bg:"#ffe4c4" },
@@ -114,227 +161,352 @@ var PALETTE = [
   { id:"purple", name:"بنفش",         bg:"#e6d9f7" },
   { id:"gray",   name:"خاکستری",      bg:"#e4e4e4" }
 ];
+var tasks = [];
+var filter = "all";
+var query = "";
+var openId = null;
+var menuId = null;
+var editPrio = "B";
+var lpTimer = null;
+var lpFired = false;
+var lastDeleted = null;
+var toastTimer = null;
+var drag = null;
+
+var listEl = document.getElementById("list");
+function $(id){ return document.getElementById(id); }
+
 function colorBg(id){
   for(var i=0;i<PALETTE.length;i++){ if(PALETTE[i].id === id){ return PALETTE[i].bg; } }
   return "";
 }
-var colorTargetId = null;
-var lpTimer = null;
-var lpFired = false;
-var tasks = [];
-var filter = "all";
-var openId = null;
+function faNum(n){
+  try{ return Number(n).toLocaleString("fa-IR"); }catch(e){ return String(n); }
+}
 
 function load(){
-try{
-var raw = localStorage.getItem(KEY);
-tasks = raw ? JSON.parse(raw) : [];
-if(!(tasks instanceof Array)){ tasks = []; }
-}catch(e){ tasks = []; }
+  try{
+    var raw = localStorage.getItem(KEY);
+    tasks = raw ? JSON.parse(raw) : [];
+    if(!(tasks instanceof Array)){ tasks = []; }
+  }catch(e){ tasks = []; }
 }
-
 function save(){
-try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
 }
-
 function uid(){
-return Date.now().toString(36) + Math.floor(Math.random()*1000000).toString(36);
+  return Date.now().toString(36) + Math.floor(Math.random()*1000000).toString(36);
 }
-
 function byId(id){
-for(var i=0;i<tasks.length;i++){
-if(tasks[i].id === id){ return tasks[i]; }
+  for(var i=0;i<tasks.length;i++){ if(tasks[i].id === id){ return tasks[i]; } }
+  return null;
 }
-return null;
+function indexOfId(id){
+  for(var i=0;i<tasks.length;i++){ if(tasks[i].id === id){ return i; } }
+  return -1;
 }
-
 function faDate(iso){
-var d = iso ? new Date(iso) : new Date();
-try{
-return new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
-}catch(e){
-return d.toISOString().slice(0,10);
+  var d = iso ? new Date(iso) : new Date();
+  try{
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+  }catch(e){ return d.toISOString().slice(0,10); }
 }
-}
+function trim(s){ return String(s).replace(/^\s+/,"").replace(/\s+$/,""); }
 
-function trim(s){
-return String(s).replace(/^\s+/,"").replace(/\s+$/,"");
-}
-
+/* ---------- افزودن ---------- */
 function addTask(){
-var el = document.getElementById("newTxt");
-var t = trim(el.value);
-if(!t){ el.focus(); return; }
-tasks.unshift({
-id: uid(),
-text: t,
-done: false,
-prio: document.getElementById("newPrio").value,
-color: "",
-created: new Date().toISOString(),
-subs: []
-});
-el.value = "";
-save();
-render();
-el.focus();
+  var el = $("newTxt");
+  var t = trim(el.value);
+  if(!t){ el.focus(); return; }
+  tasks.unshift({ id: uid(), text: t, done: false, prio: $("newPrio").value,
+    color: "", created: new Date().toISOString(), subs: [] });
+  el.value = "";
+  save(); render(); el.focus();
 }
-
 function addSub(taskId, text){
-var t = byId(taskId);
-if(!t){ return; }
-text = trim(text);
-if(!text){ return; }
-if(!t.subs){ t.subs = []; }
-t.subs.push({ id: uid(), text: text, done: false });
-save();
-render();
+  var t = byId(taskId);
+  if(!t){ return; }
+  text = trim(text);
+  if(!text){ return; }
+  if(!t.subs){ t.subs = []; }
+  t.subs.push({ id: uid(), text: text, done: false });
+  save(); render();
+  var inp = listEl.querySelector(".subadd input");
+  if(inp){ inp.focus(); }
 }
 
+/* ---------- فیلتر و جستجو ---------- */
+function matches(t){
+  if(!query){ return true; }
+  var q = query.toLowerCase();
+  if(String(t.text).toLowerCase().indexOf(q) >= 0){ return true; }
+  var subs = t.subs || [];
+  for(var i=0;i<subs.length;i++){
+    if(String(subs[i].text).toLowerCase().indexOf(q) >= 0){ return true; }
+  }
+  return false;
+}
 function visible(){
-var out = [];
-for(var i=0;i<tasks.length;i++){
-var t = tasks[i];
-if(filter === "open" && t.done){ continue; }
-if(filter === "done" && !t.done){ continue; }
-out.push(t);
-}
-return out;
+  var out = [];
+  for(var i=0;i<tasks.length;i++){
+    var t = tasks[i];
+    if(filter === "open" && t.done){ continue; }
+    if(filter === "done" && !t.done){ continue; }
+    if(!matches(t)){ continue; }
+    out.push(t);
+  }
+  return out;
 }
 
+/* ---------- نمایش ---------- */
 function render(){
-var ul = document.getElementById("list");
-ul.innerHTML = "";
-var items = visible();
-if(items.length === 0){
-var p = document.createElement("li");
-p.className = "empty";
-p.textContent = "کاری ثبت نشده است.";
-ul.appendChild(p);
-return;
-}
-for(var i=0;i<items.length;i++){
-var t = items[i];
-var li = document.createElement("li");
-li.className = "p-" + (t.prio || "B");
-var bgc = colorBg(t.color);
-if(bgc){ li.style.background = bgc; }
+  listEl.innerHTML = "";
+  var items = visible();
+  if(items.length === 0){
+    var p = document.createElement("li");
+    p.className = "empty";
+    p.textContent = query ? "کاری با این عبارت پیدا نشد." : "کاری ثبت نشده است.";
+    listEl.appendChild(p);
+    return;
+  }
+  for(var i=0;i<items.length;i++){
+    var t = items[i];
+    var li = document.createElement("li");
+    li.className = "p-" + (t.prio || "B");
+    li.setAttribute("data-tid", t.id);
+    var bgc = colorBg(t.color);
+    if(bgc){ li.style.background = bgc; }
 
-var row = document.createElement("div");
-row.className = "row";
+    var row = document.createElement("div");
+    row.className = "row";
 
-var cb = document.createElement("input");
-cb.type = "checkbox";
-cb.checked = !!t.done;
-cb.setAttribute("aria-label", "انجام شد");
-cb.setAttribute("data-id", t.id);
-cb.setAttribute("data-act", "toggle");
-row.appendChild(cb);
+    var h = document.createElement("span");
+    h.className = "handle";
+    h.textContent = "☰";
+    h.setAttribute("aria-label", "جابه‌جایی");
+    h.setAttribute("data-act", "drag");
+    h.setAttribute("data-id", t.id);
+    row.appendChild(h);
 
-var txt = document.createElement("div");
-txt.className = t.done ? "txt done" : "txt";
-txt.setAttribute("data-id", t.id);
-txt.setAttribute("data-act", "open");
-txt.appendChild(document.createTextNode(t.text));
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!t.done;
+    cb.setAttribute("aria-label", "انجام شد");
+    cb.setAttribute("data-id", t.id);
+    cb.setAttribute("data-act", "toggle");
+    row.appendChild(cb);
 
-var meta = document.createElement("span");
-meta.className = "meta";
-var n = t.subs ? t.subs.length : 0;
-meta.textContent = faDate(t.created) + (n ? "  -  " + n + " ریزکار" : "");
-txt.appendChild(meta);
-row.appendChild(txt);
+    var txt = document.createElement("div");
+    txt.className = t.done ? "txt done" : "txt";
+    txt.setAttribute("data-id", t.id);
+    txt.setAttribute("data-act", "open");
+    txt.appendChild(document.createTextNode(t.text));
 
-var del = document.createElement("button");
-del.type = "button";
-del.className = "del";
-del.textContent = "حذف";
-del.setAttribute("aria-label", "حذف کار");
-del.setAttribute("data-id", t.id);
-del.setAttribute("data-act", "del");
-row.appendChild(del);
-
-li.appendChild(row);
-
-if(openId === t.id){
-var subs = t.subs || [];
-var sul = document.createElement("ul");
-sul.className = "subs";
-for(var j=0;j<subs.length;j++){
-var s = subs[j];
-var sli = document.createElement("li");
-var srow = document.createElement("div");
-srow.className = "row";
-
-var scb = document.createElement("input");
-scb.type = "checkbox";
-scb.checked = !!s.done;
-scb.setAttribute("aria-label", "ریزکار انجام شد");
-scb.setAttribute("data-id", t.id);
-scb.setAttribute("data-sub", s.id);
-scb.setAttribute("data-act", "subtoggle");
-srow.appendChild(scb);
-
-var stx = document.createElement("span");
-stx.className = s.done ? "txt done" : "txt";
-stx.textContent = s.text;
-srow.appendChild(stx);
-
-var sdel = document.createElement("button");
-sdel.type = "button";
-sdel.className = "del";
-sdel.textContent = "×";
-sdel.setAttribute("aria-label", "حذف ریزکار");
-sdel.setAttribute("data-id", t.id);
-sdel.setAttribute("data-sub", s.id);
-sdel.setAttribute("data-act", "subdel");
-srow.appendChild(sdel);
-
-sli.appendChild(srow);
-sul.appendChild(sli);
-}
-li.appendChild(sul);
-
-var wrap = document.createElement("div");
-wrap.className = "subadd";
-var inp = document.createElement("input");
-inp.type = "text";
-inp.placeholder = "ریزکار جدید...";
-inp.setAttribute("aria-label", "ریزکار جدید");
-var bt = document.createElement("button");
-bt.type = "button";
-bt.textContent = "افزودن";
-bindSub(t.id, inp, bt);
-wrap.appendChild(inp);
-wrap.appendChild(bt);
-li.appendChild(wrap);
-}
-ul.appendChild(li);
-}
-}
-
-function bindSub(id, inputEl, btnEl){
-btnEl.onclick = function(){ addSub(id, inputEl.value); };
-inputEl.onkeydown = function(ev){
-if(ev.keyCode === 13){ addSub(id, inputEl.value); }
-};
-}
-
-var listEl = document.getElementById("list");
-
-function taskIdFrom(el){
-  while(el && el !== listEl){
-    if(el.getAttribute && el.getAttribute("data-id") && el.getAttribute("data-act") !== "subtoggle" && el.getAttribute("data-act") !== "subdel"){ return el.getAttribute("data-id"); }
-    if(el.tagName === "LI" && el.parentNode === listEl){
-      var d = el.querySelector("[data-act=open]");
-      return d ? d.getAttribute("data-id") : null;
+    var meta = document.createElement("span");
+    meta.className = "meta";
+    meta.setAttribute("data-id", t.id);
+    meta.setAttribute("data-act", "open");
+    var subs = t.subs || [];
+    var n = subs.length, nd = 0;
+    for(var k=0;k<n;k++){ if(subs[k].done){ nd++; } }
+    meta.textContent = faDate(t.created) + (n ? "  -  " + faNum(nd) + " از " + faNum(n) + " ریزکار" : "");
+    txt.appendChild(meta);
+    if(n){
+      var pg = document.createElement("span");
+      pg.className = "prog";
+      pg.setAttribute("data-id", t.id);
+      pg.setAttribute("data-act", "open");
+      var bar = document.createElement("i");
+      bar.style.width = Math.round(nd*100/n) + "%";
+      pg.appendChild(bar);
+      txt.appendChild(pg);
     }
+    row.appendChild(txt);
+
+    var del = document.createElement("button");
+    del.type = "button";
+    del.className = "del";
+    del.textContent = "حذف";
+    del.setAttribute("aria-label", "حذف کار");
+    del.setAttribute("data-id", t.id);
+    del.setAttribute("data-act", "del");
+    row.appendChild(del);
+    li.appendChild(row);
+
+    if(openId === t.id){
+      var sul = document.createElement("ul");
+      sul.className = "subs";
+      for(var j=0;j<subs.length;j++){
+        var s = subs[j];
+        var sli = document.createElement("li");
+        var srow = document.createElement("div");
+        srow.className = "row";
+        var scb = document.createElement("input");
+        scb.type = "checkbox";
+        scb.checked = !!s.done;
+        scb.setAttribute("aria-label", "ریزکار انجام شد");
+        scb.setAttribute("data-id", t.id);
+        scb.setAttribute("data-sub", s.id);
+        scb.setAttribute("data-act", "subtoggle");
+        srow.appendChild(scb);
+        var stx = document.createElement("span");
+        stx.className = s.done ? "txt done" : "txt";
+        stx.textContent = s.text;
+        srow.appendChild(stx);
+        var sdel = document.createElement("button");
+        sdel.type = "button";
+        sdel.className = "del";
+        sdel.textContent = "×";
+        sdel.setAttribute("aria-label", "حذف ریزکار");
+        sdel.setAttribute("data-id", t.id);
+        sdel.setAttribute("data-sub", s.id);
+        sdel.setAttribute("data-act", "subdel");
+        srow.appendChild(sdel);
+        sli.appendChild(srow);
+        sul.appendChild(sli);
+      }
+      li.appendChild(sul);
+      var wrap = document.createElement("div");
+      wrap.className = "subadd";
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.placeholder = "ریزکار جدید...";
+      inp.setAttribute("aria-label", "ریزکار جدید");
+      var bt = document.createElement("button");
+      bt.type = "button";
+      bt.textContent = "افزودن";
+      bindSub(t.id, inp, bt);
+      wrap.appendChild(inp);
+      wrap.appendChild(bt);
+      li.appendChild(wrap);
+    }
+    listEl.appendChild(li);
+  }
+}
+function bindSub(id, inputEl, btnEl){
+  btnEl.onclick = function(){ addSub(id, inputEl.value); };
+  inputEl.onkeydown = function(ev){ if(ev.keyCode === 13){ addSub(id, inputEl.value); } };
+}
+
+/* ---------- حذف با امکان بازگردانی ---------- */
+function deleteTask(id){
+  var idx = indexOfId(id);
+  if(idx < 0){ return; }
+  lastDeleted = { task: tasks[idx], index: idx };
+  tasks.splice(idx, 1);
+  if(openId === id){ openId = null; }
+  save(); render();
+  showToast("«" + shorten(lastDeleted.task.text, 22) + "» حذف شد");
+}
+function undoDelete(){
+  if(!lastDeleted){ return; }
+  var i = Math.min(lastDeleted.index, tasks.length);
+  tasks.splice(i, 0, lastDeleted.task);
+  lastDeleted = null;
+  save(); render(); hideToast();
+}
+function shorten(s, n){ s = String(s); return s.length > n ? s.slice(0, n) + "…" : s; }
+function showToast(msg){
+  $("toastMsg").textContent = msg;
+  $("toast").className = "show";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 6000);
+}
+function hideToast(){ $("toast").className = ""; clearTimeout(toastTimer); }
+$("btnUndo").onclick = undoDelete;
+
+/* ---------- جابه‌جایی با کشیدن ---------- */
+function topLi(el){
+  while(el && el !== listEl){
+    if(el.tagName === "LI" && el.parentNode === listEl){ return el; }
     el = el.parentNode;
   }
   return null;
 }
+function dragStart(ev){
+  var h = ev.target;
+  if(!h.getAttribute || h.getAttribute("data-act") !== "drag"){ return; }
+  var li = topLi(h);
+  if(!li){ return; }
+  ev.preventDefault();
+  cancelPress();
+  drag = { li: li, handle: h, y: ev.clientY, x: ev.clientX, moved: false, timer: null };
+  li.className += " dragging";
+  try{ h.setPointerCapture(ev.pointerId); }catch(e){}
+  if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(e){} }
+  drag.timer = setInterval(autoScroll, 16);
+}
+function autoScroll(){
+  if(!drag){ return; }
+  var edge = 70, vh = window.innerHeight;
+  if(drag.y < edge){ window.scrollBy(0, -Math.ceil((edge - drag.y)/5)); reposition(); }
+  else if(drag.y > vh - edge){ window.scrollBy(0, Math.ceil((drag.y - (vh - edge))/5)); reposition(); }
+}
+function dragMove(ev){
+  if(!drag){ return; }
+  ev.preventDefault();
+  drag.y = ev.clientY;
+  drag.x = ev.clientX;
+  reposition();
+}
+function reposition(){
+  var el = document.elementFromPoint(drag.x, drag.y);
+  var target = topLi(el);
+  if(!target || target === drag.li || target.className.indexOf("empty") >= 0){ return; }
+  var r = target.getBoundingClientRect();
+  var mid = r.top + r.height/2;
+  var kids = Array.prototype.slice.call(listEl.children);
+  var di = kids.indexOf(drag.li), ti = kids.indexOf(target);
+  if(ti > di && drag.y > mid){ listEl.insertBefore(drag.li, target.nextSibling); drag.moved = true; }
+  else if(ti < di && drag.y < mid){ listEl.insertBefore(drag.li, target); drag.moved = true; }
+}
+function dragEnd(){
+  if(!drag){ return; }
+  clearInterval(drag.timer);
+  var moved = drag.moved;
+  drag = null;
+  if(!moved){ render(); return; }
+  /* ترتیب جدید کارهای نمایش‌داده‌شده را در جایگاه‌های خودشان در لیست اصلی می‌نشانیم
+     تا کارهای پنهان (به‌خاطر فیلتر یا جستجو) جایشان عوض نشود */
+  var newOrder = [];
+  var kids = listEl.children;
+  for(var i=0;i<kids.length;i++){
+    var id = kids[i].getAttribute("data-tid");
+    if(id){ newOrder.push(byId(id)); }
+  }
+  var slots = [], set = {};
+  for(var j=0;j<newOrder.length;j++){ set[newOrder[j].id] = true; }
+  for(var k=0;k<tasks.length;k++){ if(set[tasks[k].id]){ slots.push(k); } }
+  for(var m=0;m<slots.length;m++){ tasks[slots[m]] = newOrder[m]; }
+  save(); render();
+}
+listEl.addEventListener("pointerdown", dragStart, false);
+window.addEventListener("pointermove", dragMove, {passive:false});
+window.addEventListener("pointerup", dragEnd, false);
+window.addEventListener("pointercancel", dragEnd, false);
+/* جلوگیری از اسکرول صفحه هنگام کشیدن با انگشت */
+window.addEventListener("touchmove", function(ev){ if(drag){ ev.preventDefault(); } }, {passive:false});
+
+function moveTo(id, where){
+  var idx = indexOfId(id);
+  if(idx < 0){ return; }
+  var t = tasks.splice(idx, 1)[0];
+  if(where === "top"){ tasks.unshift(t); } else { tasks.push(t); }
+  save(); render();
+  window.scrollTo(0, where === "top" ? 0 : document.body.scrollHeight);
+}
+
+/* ---------- نگه داشتن انگشت => منوی کار ---------- */
+function taskIdFrom(el){
+  var li = topLi(el);
+  return li ? li.getAttribute("data-tid") : null;
+}
 function startPress(ev){
+  if(drag){ return; }
   var tag = ev.target.tagName;
   if(tag === "INPUT" || tag === "BUTTON"){ return; }
+  if(ev.target.getAttribute && ev.target.getAttribute("data-act") === "drag"){ return; }
+  if(ev.target.closest && ev.target.closest(".subs, .subadd")){ return; }
   var id = taskIdFrom(ev.target);
   if(!id){ return; }
   lpFired = false;
@@ -342,181 +514,226 @@ function startPress(ev){
   lpTimer = setTimeout(function(){
     lpFired = true;
     if(navigator.vibrate){ try{ navigator.vibrate(30); }catch(e){} }
-    openColor(id);
+    openMenu(id);
   }, 550);
 }
 function cancelPress(){ clearTimeout(lpTimer); }
-
-listEl.onclick = function(ev){
-  if(lpFired){ lpFired = false; return; }
-  var el = ev.target || ev.srcElement;
-var act = el.getAttribute ? el.getAttribute("data-act") : null;
-if(!act){ return; }
-var t = byId(el.getAttribute("data-id"));
-if(!t){ return; }
-if(act === "toggle"){
-t.done = el.checked;
-save();
-render();
-}else if(act === "del"){
-if(confirm("این کار حذف شود؟")){
-for(var i=0;i<tasks.length;i++){
-if(tasks[i].id === t.id){ tasks.splice(i,1); break; }
-}
-save();
-render();
-}
-}else if(act === "open"){
-openId = (openId === t.id) ? null : t.id;
-render();
-}else if(act === "subtoggle" || act === "subdel"){
-var subs = t.subs || [];
-var sid = el.getAttribute("data-sub");
-for(var k=0;k<subs.length;k++){
-if(subs[k].id === sid){
-if(act === "subtoggle"){ subs[k].done = el.checked; }
-else { subs.splice(k,1); }
-break;
-}
-}
-save();
-render();
-}
-};
-
-document.getElementById("btnAdd").onclick = addTask;
-document.getElementById("newTxt").onkeydown = function(ev){
-if(ev.keyCode === 13){ addTask(); }
-};
-
-var fbtns = document.querySelectorAll(".filters button");
-for(var fi=0;fi<fbtns.length;fi++){
-fbtns[fi].onclick = function(){
-filter = this.getAttribute("data-f");
-for(var fj=0;fj<fbtns.length;fj++){ fbtns[fj].className = ""; }
-this.className = "on";
-render();
-};
-}
-
-document.getElementById("btnCal").onclick = function(){
-alert("امروز: " + faDate(null));
-};
-
-var mSet = document.getElementById("mSet");
-document.getElementById("btnSet").onclick = function(){ mSet.className = "modal open"; };
-document.getElementById("btnCloseSet").onclick = function(){ mSet.className = "modal"; };
-mSet.onclick = function(ev){
-if((ev.target || ev.srcElement) === mSet){ mSet.className = "modal"; }
-};
-
-document.getElementById("btnExport").onclick = function(){
-var blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
-var a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "todo-backup.json";
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-};
-
-document.getElementById("btnImportPick").onclick = function(){
-document.getElementById("fileIn").click();
-};
-
-document.getElementById("fileIn").onchange = function(){
-var f = this.files && this.files[0];
-if(!f){ return; }
-var r = new FileReader();
-r.onload = function(){
-try{
-var data = JSON.parse(r.result);
-if(data instanceof Array){
-tasks = data;
-save();
-render();
-mSet.className = "modal";
-alert("بازگردانی انجام شد.");
-}else{
-alert("ساختار فایل درست نیست.");
-}
-}catch(e){ alert("فایل قابل خواندن نیست."); }
-};
-r.readAsText(f);
-this.value = "";
-};
-
-document.getElementById("btnClear").onclick = function(){
-if(confirm("همه کارها پاک شوند؟ این کار برگشت‌پذیر نیست.")){
-tasks = [];
-openId = null;
-save();
-render();
-mSet.className = "modal";
-}
-};
-
-function openColor(id){
-  colorTargetId = id;
-  var t = byId(id);
-  var wrap = document.getElementById("swWrap");
-  wrap.innerHTML = "";
-  for(var i=0;i<PALETTE.length;i++){
-    var c = PALETTE[i];
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "sw" + (t && t.color === c.id ? " sel" : "");
-    b.style.background = c.bg;
-    b.title = c.name;
-    b.setAttribute("aria-label", c.name);
-    b.setAttribute("data-color", c.id);
-    wrap.appendChild(b);
-  }
-  var n = document.createElement("button");
-  n.type = "button";
-  n.className = "sw sw-none" + (t && !t.color ? " sel" : "");
-  n.textContent = "بدون رنگ";
-  n.setAttribute("aria-label", "حذف رنگ");
-  n.setAttribute("data-color", "");
-  wrap.appendChild(n);
-  document.getElementById("mColor").className = "modal open";
-}
-
-function setColor(cid){
-  var t = byId(colorTargetId);
-  if(t){ t.color = cid || ""; save(); render(); }
-  document.getElementById("mColor").className = "modal";
-}
-
-document.getElementById("swWrap").addEventListener("click", function(ev){
-  var el = ev.target;
-  if(!el.getAttribute || typeof el.getAttribute("data-color") === "undefined"){ return; }
-  setColor(el.getAttribute("data-color"));
-});
-
-var mColor = document.getElementById("mColor");
-document.getElementById("btnCloseColor").onclick = function(){ mColor.className = "modal"; };
-mColor.onclick = function(ev){ if((ev.target || ev.srcElement) === mColor){ mColor.className = "modal"; } };
-
-listEl.addEventListener("touchstart", startPress, false);
+listEl.addEventListener("touchstart", startPress, {passive:true});
 listEl.addEventListener("touchend", cancelPress, false);
-listEl.addEventListener("touchmove", cancelPress, false);
+listEl.addEventListener("touchmove", cancelPress, {passive:true});
 listEl.addEventListener("touchcancel", cancelPress, false);
 listEl.addEventListener("mousedown", startPress, false);
 listEl.addEventListener("mouseup", cancelPress, false);
 listEl.addEventListener("mouseleave", cancelPress, false);
 listEl.addEventListener("contextmenu", function(ev){
   var id = taskIdFrom(ev.target);
-  if(id){ ev.preventDefault(); cancelPress(); openColor(id); }
+  if(id){ ev.preventDefault(); cancelPress(); openMenu(id); }
 }, false);
+
+var modalOpenedAt = 0;
+function openModal(m){ m.className = "modal open"; modalOpenedAt = Date.now(); }
+function closeModal(m){ m.className = "modal"; }
+/* بستن با ضربه روی پس‌زمینه؛ ضربه‌ای که درست بعد از باز شدن (برداشتن انگشت) می‌آید نادیده گرفته می‌شود */
+function closeOnBackdrop(m){ m.onclick = function(ev){ if(ev.target === m){ closeModal(m); } }; }
+/* ضربه‌ای که با برداشتن انگشت درست بعد از باز شدن پنجره می‌آید، هیچ دکمه‌ای را فعال نکند */
+document.addEventListener("click", function(ev){
+  if(Date.now() - modalOpenedAt < 600 && ev.target.closest && ev.target.closest(".modal")){
+    ev.preventDefault(); ev.stopPropagation();
+  }
+}, true);
+
+var mMenu = $("mMenu"), mEdit = $("mEdit"), mSet = $("mSet");
+closeOnBackdrop(mMenu); closeOnBackdrop(mEdit); closeOnBackdrop(mSet);
+
+function openMenu(id){
+  menuId = id;
+  var t = byId(id);
+  if(!t){ return; }
+  $("menuTitle").textContent = shorten(t.text, 60);
+  var wrap = $("swWrap");
+  wrap.innerHTML = "";
+  for(var i=0;i<PALETTE.length;i++){
+    var c = PALETTE[i];
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "sw" + (t.color === c.id ? " sel" : "");
+    b.style.background = c.bg;
+    b.title = c.name;
+    b.setAttribute("aria-label", c.name);
+    b.setAttribute("data-color", c.id);
+    wrap.appendChild(b);
+  }
+  var nb = document.createElement("button");
+  nb.type = "button";
+  nb.className = "sw sw-none" + (!t.color ? " sel" : "");
+  nb.textContent = "بدون رنگ";
+  nb.setAttribute("data-color", "");
+  wrap.appendChild(nb);
+  openModal(mMenu);
+}
+$("swWrap").addEventListener("click", function(ev){
+  var el = ev.target;
+  if(!el.hasAttribute || !el.hasAttribute("data-color")){ return; }
+  var t = byId(menuId);
+  if(t){ t.color = el.getAttribute("data-color") || ""; save(); render(); }
+  closeModal(mMenu);
+});
+$("btnCloseMenu").onclick = function(){ closeModal(mMenu); };
+$("btnTop").onclick = function(){ closeModal(mMenu); moveTo(menuId, "top"); };
+$("btnBottom").onclick = function(){ closeModal(mMenu); moveTo(menuId, "bottom"); };
+$("btnEdit").onclick = function(){
+  var t = byId(menuId);
+  closeModal(mMenu);
+  if(!t){ return; }
+  $("editTxt").value = t.text;
+  setEditPrio(t.prio || "B");
+  openModal(mEdit);
+  setTimeout(function(){ $("editTxt").focus(); }, 50);
+};
+
+/* ---------- ویرایش ---------- */
+function setEditPrio(p){
+  editPrio = p;
+  var bs = $("prioPick").children;
+  for(var i=0;i<bs.length;i++){ bs[i].className = bs[i].getAttribute("data-p") === p ? "sel" : ""; }
+}
+$("prioPick").onclick = function(ev){
+  var p = ev.target.getAttribute && ev.target.getAttribute("data-p");
+  if(p){ setEditPrio(p); }
+};
+$("btnEditSave").onclick = function(){
+  var t = byId(menuId);
+  var v = trim($("editTxt").value);
+  if(!v){ $("editTxt").focus(); return; }
+  if(t){ t.text = v; t.prio = editPrio; save(); render(); }
+  closeModal(mEdit);
+};
+$("btnEditCancel").onclick = function(){ closeModal(mEdit); };
+
+/* ---------- کلیک روی لیست ---------- */
+listEl.onclick = function(ev){
+  if(lpFired){ lpFired = false; return; }
+  var el = ev.target;
+  var act = el.getAttribute ? el.getAttribute("data-act") : null;
+  if(!act || act === "drag"){ return; }
+  var t = byId(el.getAttribute("data-id"));
+  if(!t){ return; }
+  if(act === "toggle"){
+    t.done = el.checked; save(); render();
+  }else if(act === "del"){
+    deleteTask(t.id);
+  }else if(act === "open"){
+    openId = (openId === t.id) ? null : t.id; render();
+  }else if(act === "subtoggle" || act === "subdel"){
+    var subs = t.subs || [];
+    var sid = el.getAttribute("data-sub");
+    for(var k=0;k<subs.length;k++){
+      if(subs[k].id === sid){
+        if(act === "subtoggle"){ subs[k].done = el.checked; } else { subs.splice(k,1); }
+        break;
+      }
+    }
+    save(); render();
+  }
+};
+
+/* ---------- نوار بالا ---------- */
+$("btnAdd").onclick = addTask;
+$("newTxt").onkeydown = function(ev){ if(ev.keyCode === 13){ addTask(); } };
+
+var fbtns = document.querySelectorAll(".filters button");
+for(var fi=0;fi<fbtns.length;fi++){
+  fbtns[fi].onclick = function(){
+    filter = this.getAttribute("data-f");
+    for(var fj=0;fj<fbtns.length;fj++){ fbtns[fj].className = ""; }
+    this.className = "on";
+    render();
+  };
+}
+$("btnSearch").onclick = function(){
+  var bar = $("searchBar");
+  if(bar.className.indexOf("open") >= 0){
+    bar.className = "bar"; this.className = "ico";
+    query = ""; $("searchTxt").value = ""; render();
+  }else{
+    bar.className = "bar open"; this.className = "ico on";
+    $("searchTxt").focus();
+  }
+};
+$("searchTxt").oninput = function(){ query = trim(this.value); render(); };
+$("btnCal").onclick = function(){ alert("امروز: " + faDate(null)); };
+
+/* ---------- تنظیمات و پشتیبان ---------- */
+$("btnSet").onclick = function(){ openModal(mSet); };
+$("btnCloseSet").onclick = function(){ closeModal(mSet); };
+
+function doExport(){
+  var blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  var d = new Date();
+  a.download = "todo-backup-" + d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  try{ localStorage.setItem(BACKUP_KEY, String(Date.now())); }catch(e){}
+  checkBackup();
+}
+$("btnExport").onclick = doExport;
+$("btnImportPick").onclick = function(){ $("fileIn").click(); };
+$("fileIn").onchange = function(){
+  var f = this.files && this.files[0];
+  if(!f){ return; }
+  var r = new FileReader();
+  r.onload = function(){
+    try{
+      var data = JSON.parse(r.result);
+      if(data instanceof Array){
+        tasks = data; save(); render(); closeModal(mSet);
+        alert("بازگردانی انجام شد.");
+      }else{ alert("ساختار فایل درست نیست."); }
+    }catch(e){ alert("فایل قابل خواندن نیست."); }
+  };
+  r.readAsText(f);
+  this.value = "";
+};
+$("btnClear").onclick = function(){
+  if(confirm("همه کارها پاک شوند؟ این کار برگشت‌پذیر نیست.")){
+    tasks = []; openId = null; save(); render(); closeModal(mSet);
+  }
+};
+
+function checkBackup(){
+  var bar = $("backupBar");
+  var now = Date.now(), day = 86400000;
+  var last = 0, snooze = 0;
+  try{
+    last = Number(localStorage.getItem(BACKUP_KEY)) || 0;
+    snooze = Number(localStorage.getItem(SNOOZE_KEY)) || 0;
+    if(!last){ last = now; localStorage.setItem(BACKUP_KEY, String(now)); }
+  }catch(e){ last = now; }
+  var days = Math.floor((now - last)/day);
+  if(tasks.length && days >= BACKUP_DAYS && now > snooze){
+    $("backupMsg").textContent = faNum(days) + " روز است از کارهایتان پشتیبان نگرفته‌اید.";
+    bar.className = "open";
+  }else{
+    bar.className = "";
+  }
+}
+$("btnBackupNow").onclick = doExport;
+$("btnBackupLater").onclick = function(){
+  try{ localStorage.setItem(SNOOZE_KEY, String(Date.now() + 86400000)); }catch(e){}
+  checkBackup();
+};
 
 load();
 render();
+checkBackup();
 
 if("serviceWorker" in navigator){
-window.addEventListener("load", function(){
-navigator.serviceWorker.register("sw.js")["catch"](function(){});
-});
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js")["catch"](function(){});
+  });
 }
 })();
 </script>

@@ -1,4 +1,4 @@
-var CACHE_NAME = "todo-v3";
+var CACHE_NAME = "todo-v4";
 var ASSETS = [
   "./",
   "./index.html",
@@ -33,20 +33,43 @@ self.addEventListener("activate", function (event) {
   );
 });
 
+function putInCache(request, response) {
+  if (request.method === "GET" && response && response.status === 200) {
+    var copy = response.clone();
+    caches.open(CACHE_NAME).then(function (cache) {
+      cache.put(request, copy);
+    });
+  }
+  return response;
+}
+
 self.addEventListener("fetch", function (event) {
+  var req = event.request;
+  var isPage = req.mode === "navigate" ||
+    (req.method === "GET" && /\/(index\.html)?(\?.*)?$/.test(new URL(req.url).pathname));
+
+  if (isPage) {
+    // صفحه اصلی: اول از اینترنت (تا نسخه جدید فوراً برسد)، اگر آفلاین بود از حافظه
+    event.respondWith(
+      fetch(req).then(function (response) {
+        return putInCache(req, response);
+      }).catch(function () {
+        return caches.match(req).then(function (cached) {
+          return cached || caches.match("./index.html");
+        });
+      })
+    );
+    return;
+  }
+
+  // بقیه فایل‌ها (آیکن‌ها، manifest): اول از حافظه
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
+    caches.match(req).then(function (cached) {
       if (cached) {
         return cached;
       }
-      return fetch(event.request).then(function (response) {
-        if (event.request.method === "GET" && response && response.status === 200) {
-          var copy = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(event.request, copy);
-          });
-        }
-        return response;
+      return fetch(req).then(function (response) {
+        return putInCache(req, response);
       }).catch(function () {
         return caches.match("./index.html");
       });
