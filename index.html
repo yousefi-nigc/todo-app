@@ -41,6 +41,12 @@ header h1{font-size:17px;margin:0;margin-inline-start:auto;}
 .cats button.on{background:#4f7480;color:#fff;border-color:#4f7480;}
 .cats button.add{border-style:dashed;color:var(--muted);}
 .cats button.mng{padding:6px 10px;}
+#projBar{display:none;margin:8px 12px 0;padding:10px 12px;border-radius:12px;background:#4f7480;color:#fff;align-items:center;gap:8px;font-size:14px;}
+#projBar.open{display:flex;}
+#projBar span{flex:1;word-break:break-word;}
+#projBar button{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;}
+.empty .tip{display:block;font-size:12px;margin-top:10px;line-height:1.9;}
+.ver{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 0;}
 .catTag{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin-inline-start:4px;background:#dfe9ec;color:#2f4f58;}
 .box select.catSel{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;margin-bottom:12px;}
 .box input.txtIn{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;margin-bottom:10px;}
@@ -160,6 +166,7 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" data-f="done">انجام‌شده</button>
 </div>
 <div class="cats" id="cats"></div>
+<div id="projBar"><span id="projBarTxt"></span><button type="button" id="btnProjExit">خروج از پروژه &#10005;</button></div>
 <p class="hint">برای جابه‌جایی، دستگیره <b>&#9776;</b> را بگیرید و بالا یا پایین بکشید • برای دیدن ریزکارها روی متن کار ضربه بزنید</p>
 <p class="legend">برای پروژه، سررسید، تکرار، ویرایش، رنگ یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
 <ul id="list"></ul>
@@ -173,6 +180,7 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 <button type="button" id="btnClear">پاک کردن همه کارها</button>
 <button type="button" id="btnCloseSet" class="primary">بستن</button>
+<p class="ver">نسخه ۸ — ۲۴ آبان ۱۴۰۵</p>
 </div>
 </div>
 
@@ -233,6 +241,15 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" id="btnProjRename" class="primary">ذخیره نام</button>
 <button type="button" id="btnProjDel">حذف پروژه (کارهایش حذف نمی‌شوند)</button>
 <button type="button" id="btnProjClose">بستن</button>
+</div>
+</div>
+
+<div class="modal" id="mNewProj">
+<div class="box">
+<h2>پروژه یا شرکت جدید</h2>
+<input type="text" id="newProjName" class="txtIn" placeholder="مثلاً: گاز زنجان" aria-label="نام پروژه">
+<button type="button" id="btnNewProjOk" class="primary">ساختن پروژه</button>
+<button type="button" id="btnNewProjCancel">انصراف</button>
 </div>
 </div>
 
@@ -308,13 +325,21 @@ function loadCats(){
 function saveCats(){
   try{ localStorage.setItem(CATS_KEY, JSON.stringify(cats)); localStorage.setItem(CUR_KEY, curCat); }catch(e){}
 }
-function addCatPrompt(){
-  var n = prompt("نام پروژه یا شرکت:");
-  if(n === null){ return null; }
-  n = trim(n).replace(/\s+/g, " ");
-  if(!n){ return null; }
-  if(cats.indexOf(n) < 0){ cats.push(n); saveCats(); }
-  return n;
+/* پنجره ساختن پروژه (داخل خود اپ؛ cb با نام پروژه یا null صدا زده می‌شود) */
+var catCb = null;
+function askCatName(cb){
+  catCb = cb;
+  $("newProjName").value = "";
+  openModal($("mNewProj"));
+  setTimeout(function(){ $("newProjName").focus(); }, 80);
+}
+function finishCatName(ok){
+  var n = ok ? trim($("newProjName").value).replace(/\s+/g, " ") : "";
+  if(ok && !n){ $("newProjName").focus(); return; }
+  if(n && cats.indexOf(n) < 0){ cats.push(n); saveCats(); }
+  closeModal($("mNewProj"));
+  var cb = catCb; catCb = null;
+  if(cb){ cb(n || null); }
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
@@ -537,7 +562,14 @@ function render(){
   if(items.length === 0){
     var p = document.createElement("li");
     p.className = "empty";
-    p.textContent = query ? "کاری با این عبارت پیدا نشد." : (filter === "today" ? "برای امروز کار سررسیدشده‌ای ندارید." : (curCat ? "در این پروژه کاری ثبت نشده است." : "کاری ثبت نشده است."));
+    p.textContent = query ? "کاری با این عبارت پیدا نشد." : (filter === "today" ? "برای امروز کار سررسیدشده‌ای ندارید." : (curCat ? "در این پروژه هنوز کاری نیست." : "کاری ثبت نشده است."));
+    if(curCat && !query){
+      var tip = document.createElement("span");
+      tip.className = "tip";
+      tip.textContent = (filter !== "all" ? "فیلتر «" + (filter === "today" ? "امروز" : filter === "open" ? "انجام‌نشده" : "انجام‌شده") + "» فعال است؛ «همه» را بزنید. " : "") +
+        "کار جدیدی که بالا بنویسید در همین پروژه ثبت می‌شود. برای آوردن کارهای قبلی: از «خروج از پروژه» به همه کارها بروید، انگشت را روی کار نگه دارید، «ویرایش» را بزنید و پروژه را انتخاب کنید.";
+      p.appendChild(tip);
+    }
     listEl.appendChild(p);
     return;
   }
@@ -723,10 +755,13 @@ $("btnMore").onclick = function(){
 };
 $("newCat").onchange = function(){
   if(this.value === "__new"){
-    var n = addCatPrompt();
-    fillNewCat();
-    this.value = n || "";
-    renderCats();
+    askCatName(function(n){
+      fillNewCat();
+      $("newCat").value = n || "";
+      renderCats();
+      updatePlaceholder();
+    });
+    return;
   }
   updatePlaceholder();
 };
@@ -738,6 +773,17 @@ function newPickChanged(){ fillNewDuePick(newDueJdn()); }
 $("newDueY").onchange = newPickChanged;
 $("newDueM").onchange = newPickChanged;
 $("newDueD").onchange = newPickChanged;
+
+function flash(msg){ showToast(msg); $("btnUndo").style.display = "none"; }
+$("btnNewProjOk").onclick = function(){ finishCatName(true); };
+$("btnNewProjCancel").onclick = function(){ finishCatName(false); };
+$("newProjName").onkeydown = function(ev){ if(ev.keyCode === 13){ finishCatName(true); } };
+$("mNewProj").onclick = function(ev){ if(ev.target === this && Date.now() - modalOpenedAt > 600){ finishCatName(false); } };
+$("btnProjExit").onclick = function(){
+  curCat = ""; saveCats(); render();
+  if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); updatePlaceholder(); }
+  flash("همه کارها نمایش داده می‌شوند");
+};
 
 /* ---------- پروژه‌ها ---------- */
 function renderCats(){
@@ -769,6 +815,14 @@ function renderCats(){
     if(r.right > br.right){ box.scrollLeft += r.right - br.right + 12; }
     else if(r.left < br.left){ box.scrollLeft -= br.left - r.left + 12; }
   }
+  var bar = $("projBar");
+  if(curCat){
+    var nOpen = counts[curCat] || 0;
+    $("projBarTxt").textContent = "\uD83D\uDCC1 داخل پروژه «" + curCat + "» — " + (nOpen ? faNum(nOpen) + " کار باز" : "هنوز کار بازی ندارد");
+    bar.className = "open";
+  }else{
+    bar.className = "";
+  }
   updatePlaceholder();
 }
 $("cats").onclick = function(ev){
@@ -776,8 +830,12 @@ $("cats").onclick = function(ev){
   if(!el.getAttribute){ return; }
   var x = el.getAttribute("data-x");
   if(x === "add"){
-    var n = addCatPrompt();
-    if(n){ curCat = n; saveCats(); render(); if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); } }
+    askCatName(function(n){
+      if(!n){ return; }
+      curCat = n; saveCats(); render();
+      if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); updatePlaceholder(); }
+      flash("پروژه «" + n + "» ساخته شد و الان داخل آن هستید");
+    });
     return;
   }
   if(x === "manage"){
@@ -787,8 +845,14 @@ $("cats").onclick = function(ev){
     return;
   }
   if(el.hasAttribute("data-c")){
-    curCat = el.getAttribute("data-c");
+    var nc = el.getAttribute("data-c");
+    if(nc === curCat){
+      flash(curCat ? "الان داخل پروژه «" + curCat + "» هستید" : "همه کارها نمایش داده می‌شوند");
+      return;
+    }
+    curCat = nc;
     saveCats(); render();
+    flash(curCat ? "وارد پروژه «" + curCat + "» شدید" : "همه کارها نمایش داده می‌شوند");
     if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); updatePlaceholder(); }
   }
 };
@@ -1037,8 +1101,7 @@ function fillCatSelect(val){
 }
 $("editCat").onchange = function(){
   if(this.value !== "__new"){ return; }
-  var n = addCatPrompt();
-  fillCatSelect(n || "");
+  askCatName(function(n){ fillCatSelect(n || ""); });
 };
 
 /* ---------- انتخاب سررسید ---------- */
