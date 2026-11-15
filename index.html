@@ -25,6 +25,15 @@ header h1{font-size:17px;margin:0;margin-inline-start:auto;}
 .filters{display:flex;gap:8px;padding:0 12px;}
 .filters button{flex:1;padding:8px 2px;border:1px solid var(--line);background:#fffdf6;border-radius:20px;font:inherit;cursor:pointer;}
 .filters button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.cats::-webkit-scrollbar{display:none;}
+.cats button{flex:none;padding:6px 12px;border:1px solid var(--line);background:#fffdf6;border-radius:16px;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer;color:var(--ink);}
+.cats button.on{background:#4f7480;color:#fff;border-color:#4f7480;}
+.cats button.add{border-style:dashed;color:var(--muted);}
+.cats button.mng{padding:6px 10px;}
+.catTag{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin-inline-start:4px;background:#dfe9ec;color:#2f4f58;}
+.box select.catSel{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;margin-bottom:12px;}
+.box input.txtIn{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;margin-bottom:10px;}
 .hint{text-align:center;font-size:12px;color:var(--muted);padding:6px 12px 4px;margin:0;line-height:1.8;}
 .legend{font-size:11px;color:var(--muted);padding:0 12px 10px;line-height:1.8;margin:0;text-align:center;}
 ul{list-style:none;margin:0;padding:0;}
@@ -117,8 +126,9 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" data-f="open">انجام‌نشده</button>
 <button type="button" data-f="done">انجام‌شده</button>
 </div>
+<div class="cats" id="cats"></div>
 <p class="hint">برای جابه‌جایی، دستگیره <b>&#9776;</b> را بگیرید و بالا یا پایین بکشید • برای دیدن ریزکارها روی متن کار ضربه بزنید</p>
-<p class="legend">برای سررسید، تکرار، ویرایش، رنگ یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
+<p class="legend">برای پروژه، سررسید، تکرار، ویرایش، رنگ یا انتقال به اول لیست: انگشت را روی کار <b>نگه دارید</b></p>
 <ul id="list"></ul>
 </div>
 
@@ -136,7 +146,7 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <div class="modal" id="mMenu">
 <div class="box">
 <h2 id="menuTitle"></h2>
-<button type="button" id="btnEdit">&#9998;&nbsp; ویرایش متن، سررسید، اولویت و تکرار</button>
+<button type="button" id="btnEdit">&#9998;&nbsp; ویرایش متن، پروژه، سررسید، اولویت و تکرار</button>
 <button type="button" id="btnTop">&#11014;&nbsp; انتقال به اول لیست</button>
 <button type="button" id="btnBottom">&#11015;&nbsp; انتقال به آخر لیست</button>
 <h3>رنگ پس‌زمینه کار</h3>
@@ -155,6 +165,8 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <button type="button" data-p="B">B</button>
 <button type="button" data-p="C">C</button>
 </div>
+<h3>پروژه / شرکت</h3>
+<select id="editCat" class="catSel" aria-label="پروژه"></select>
 <h3>سررسید</h3>
 <div class="dueQuick" id="dueQuick">
 <button type="button" data-q="none">بدون</button>
@@ -177,6 +189,17 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 </div>
 <button type="button" id="btnEditSave" class="primary">ذخیره</button>
 <button type="button" id="btnEditCancel">انصراف</button>
+</div>
+</div>
+
+<div class="modal" id="mProj">
+<div class="box">
+<h2 id="projTitle">مدیریت پروژه</h2>
+<h3>نام پروژه</h3>
+<input type="text" id="projName" class="txtIn" aria-label="نام پروژه">
+<button type="button" id="btnProjRename" class="primary">ذخیره نام</button>
+<button type="button" id="btnProjDel">حذف پروژه (کارهایش حذف نمی‌شوند)</button>
+<button type="button" id="btnProjClose">بستن</button>
 </div>
 </div>
 
@@ -205,6 +228,10 @@ var openId = null;
 var menuId = null;
 var editPrio = "B";
 var editRep = "";
+var CATS_KEY = "todo.cats";
+var CUR_KEY = "todo.curCat";
+var cats = [];
+var curCat = "";
 var editDue = null; /* {jy,jm,jd} یا null */
 var J_MONTHS = ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
 var REP_NAME = { daily:"روزانه", weekly:"هفتگی", monthly:"ماهانه" };
@@ -232,6 +259,29 @@ function load(){
     tasks = raw ? JSON.parse(raw) : [];
     if(!(tasks instanceof Array)){ tasks = []; }
   }catch(e){ tasks = []; }
+}
+function loadCats(){
+  var stored = [];
+  try{ stored = JSON.parse(localStorage.getItem(CATS_KEY) || "[]"); }catch(e){ stored = []; }
+  if(!(stored instanceof Array)){ stored = []; }
+  cats = [];
+  var i;
+  for(i=0;i<stored.length;i++){ if(stored[i] && cats.indexOf(stored[i]) < 0){ cats.push(String(stored[i])); } }
+  for(i=0;i<tasks.length;i++){ if(tasks[i].cat && cats.indexOf(tasks[i].cat) < 0){ cats.push(tasks[i].cat); } }
+  try{ curCat = localStorage.getItem(CUR_KEY) || ""; }catch(e){ curCat = ""; }
+  if(curCat && cats.indexOf(curCat) < 0){ curCat = ""; }
+  saveCats();
+}
+function saveCats(){
+  try{ localStorage.setItem(CATS_KEY, JSON.stringify(cats)); localStorage.setItem(CUR_KEY, curCat); }catch(e){}
+}
+function addCatPrompt(){
+  var n = prompt("نام پروژه یا شرکت:");
+  if(n === null){ return null; }
+  n = trim(n).replace(/\s+/g, " ");
+  if(!n){ return null; }
+  if(cats.indexOf(n) < 0){ cats.push(n); saveCats(); }
+  return n;
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
@@ -391,6 +441,7 @@ function addTask(){
   if(!t){ el.focus(); return; }
   tasks.unshift({ id: uid(), text: t, done: false, prio: $("newPrio").value,
     color: "", created: new Date().toISOString(), subs: [] });
+  if(curCat){ tasks[0].cat = curCat; }
   el.value = "";
   save(); render(); el.focus();
 }
@@ -411,6 +462,7 @@ function matches(t){
   if(!query){ return true; }
   var q = query.toLowerCase();
   if(String(t.text).toLowerCase().indexOf(q) >= 0){ return true; }
+  if(t.cat && String(t.cat).toLowerCase().indexOf(q) >= 0){ return true; }
   var subs = t.subs || [];
   for(var i=0;i<subs.length;i++){
     if(String(subs[i].text).toLowerCase().indexOf(q) >= 0){ return true; }
@@ -424,6 +476,7 @@ function visible(){
     if(filter === "open" && t.done){ continue; }
     if(filter === "done" && !t.done){ continue; }
     if(filter === "today" && !isToday(t)){ continue; }
+    if(curCat && t.cat !== curCat){ continue; }
     if(!matches(t)){ continue; }
     out.push(t);
   }
@@ -434,13 +487,14 @@ function visible(){
 function render(){
   listEl.innerHTML = "";
   var nToday = 0;
-  for(var q=0;q<tasks.length;q++){ if(isToday(tasks[q])){ nToday++; } }
+  for(var q=0;q<tasks.length;q++){ if(isToday(tasks[q]) && (!curCat || tasks[q].cat === curCat)){ nToday++; } }
+  renderCats();
   $("fToday").innerHTML = "امروز" + (nToday ? ' <span class="cnt">(' + faNum(nToday) + ')</span>' : "");
   var items = visible();
   if(items.length === 0){
     var p = document.createElement("li");
     p.className = "empty";
-    p.textContent = query ? "کاری با این عبارت پیدا نشد." : (filter === "today" ? "برای امروز کار سررسیدشده‌ای ندارید." : "کاری ثبت نشده است.");
+    p.textContent = query ? "کاری با این عبارت پیدا نشد." : (filter === "today" ? "برای امروز کار سررسیدشده‌ای ندارید." : (curCat ? "در این پروژه کاری ثبت نشده است." : "کاری ثبت نشده است."));
     listEl.appendChild(p);
     return;
   }
@@ -485,6 +539,14 @@ function render(){
     var n = subs.length, nd = 0;
     for(var k=0;k<n;k++){ if(subs[k].done){ nd++; } }
     meta.textContent = faDate(t.created) + (n ? "  -  " + faNum(nd) + " از " + faNum(n) + " ریزکار" : "");
+    if(t.cat && curCat !== t.cat){
+      var cb2 = document.createElement("span");
+      cb2.className = "catTag";
+      cb2.setAttribute("data-id", t.id);
+      cb2.setAttribute("data-act", "open");
+      cb2.textContent = "\uD83D\uDCC1 " + t.cat;
+      meta.appendChild(cb2);
+    }
     if(t.due){
       var db = document.createElement("span");
       var dj = dueJdn(t.due), diff = dj - todayJdn();
@@ -579,6 +641,59 @@ function render(){
     listEl.appendChild(li);
   }
 }
+/* ---------- پروژه‌ها ---------- */
+function renderCats(){
+  var box = $("cats");
+  box.innerHTML = "";
+  var counts = {};
+  for(var i=0;i<tasks.length;i++){
+    if(tasks[i].cat && !tasks[i].done){ counts[tasks[i].cat] = (counts[tasks[i].cat] || 0) + 1; }
+  }
+  function chip(label, cls, attr, val){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = cls;
+    b.textContent = label;
+    b.setAttribute(attr, val);
+    box.appendChild(b);
+    return b;
+  }
+  if(cats.length){ chip("همه پروژه‌ها", curCat ? "" : "on", "data-c", ""); }
+  for(var j=0;j<cats.length;j++){
+    var n = counts[cats[j]] || 0;
+    chip("\uD83D\uDCC1 " + cats[j] + (n ? " (" + faNum(n) + ")" : ""), curCat === cats[j] ? "on" : "", "data-c", cats[j]);
+  }
+  if(curCat){ chip("\u2699", "mng", "data-x", "manage").setAttribute("aria-label", "مدیریت پروژه"); }
+  chip("+ پروژه", "add", "data-x", "add");
+  var on = box.querySelector(".on");
+  if(on){
+    var br = box.getBoundingClientRect(), r = on.getBoundingClientRect();
+    if(r.right > br.right){ box.scrollLeft += r.right - br.right + 12; }
+    else if(r.left < br.left){ box.scrollLeft -= br.left - r.left + 12; }
+  }
+  $("newTxt").placeholder = curCat ? "کار جدید در «" + curCat + "»..." : "کار جدید...";
+}
+$("cats").onclick = function(ev){
+  var el = ev.target;
+  if(!el.getAttribute){ return; }
+  var x = el.getAttribute("data-x");
+  if(x === "add"){
+    var n = addCatPrompt();
+    if(n){ curCat = n; saveCats(); render(); }
+    return;
+  }
+  if(x === "manage"){
+    $("projTitle").textContent = "مدیریت پروژه «" + curCat + "»";
+    $("projName").value = curCat;
+    openModal(mProj);
+    return;
+  }
+  if(el.hasAttribute("data-c")){
+    curCat = el.getAttribute("data-c");
+    saveCats(); render();
+  }
+};
+
 function bindSub(id, inputEl, btnEl){
   btnEl.onclick = function(){ addSub(id, inputEl.value); };
   inputEl.onkeydown = function(ev){ if(ev.keyCode === 13){ addSub(id, inputEl.value); } };
@@ -739,8 +854,31 @@ document.addEventListener("click", function(ev){
   }
 }, true);
 
-var mMenu = $("mMenu"), mEdit = $("mEdit"), mSet = $("mSet");
-closeOnBackdrop(mMenu); closeOnBackdrop(mEdit); closeOnBackdrop(mSet);
+var mMenu = $("mMenu"), mEdit = $("mEdit"), mSet = $("mSet"), mProj = $("mProj");
+closeOnBackdrop(mMenu); closeOnBackdrop(mEdit); closeOnBackdrop(mSet); closeOnBackdrop(mProj);
+
+$("btnProjClose").onclick = function(){ closeModal(mProj); };
+$("btnProjRename").onclick = function(){
+  var old = curCat, n = trim($("projName").value).replace(/\s+/g, " ");
+  if(!n){ $("projName").focus(); return; }
+  if(n !== old){
+    for(var i=0;i<tasks.length;i++){ if(tasks[i].cat === old){ tasks[i].cat = n; } }
+    var idx = cats.indexOf(old);
+    if(cats.indexOf(n) >= 0){ cats.splice(idx, 1); } else { cats[idx] = n; }
+    curCat = n;
+    save(); saveCats(); render();
+  }
+  closeModal(mProj);
+};
+$("btnProjDel").onclick = function(){
+  var old = curCat;
+  if(!confirm("پروژه «" + old + "» حذف شود؟\nکارهای آن حذف نمی‌شوند و فقط بدون پروژه می‌شوند.")){ return; }
+  for(var i=0;i<tasks.length;i++){ if(tasks[i].cat === old){ delete tasks[i].cat; } }
+  cats.splice(cats.indexOf(old), 1);
+  curCat = "";
+  save(); saveCats(); render();
+  closeModal(mProj);
+};
 
 function openMenu(id){
   menuId = id;
@@ -786,11 +924,24 @@ $("btnEdit").onclick = function(){
   setEditPrio(t.prio || "B");
   setEditRep(t.repeat || "");
   setEditDue(t.due ? dueJdn(t.due) : null);
+  fillCatSelect(t.cat || "");
   openModal(mEdit);
   setTimeout(function(){ $("editTxt").focus(); }, 50);
 };
 
 /* ---------- ویرایش ---------- */
+function fillCatSelect(val){
+  var items = [["", "بدون پروژه"]];
+  for(var i=0;i<cats.length;i++){ items.push([cats[i], cats[i]]); }
+  items.push(["__new", "+ پروژه جدید..."]);
+  fillSelect($("editCat"), items, val);
+}
+$("editCat").onchange = function(){
+  if(this.value !== "__new"){ return; }
+  var n = addCatPrompt();
+  fillCatSelect(n || "");
+};
+
 /* ---------- انتخاب سررسید ---------- */
 function fillSelect(sel, items, value){
   sel.innerHTML = "";
@@ -857,6 +1008,8 @@ $("btnEditSave").onclick = function(){
   if(!v){ $("editTxt").focus(); return; }
   if(t){
     t.text = v; t.prio = editPrio;
+    var cv = $("editCat").value;
+    if(cv && cv !== "__new"){ t.cat = cv; } else { delete t.cat; }
     if(editDue){ t.due = jdnToDue(j2d(editDue.jy, editDue.jm, editDue.jd)); } else { delete t.due; }
     if(editRep){ t.repeat = editRep; if(t.done && !t.doneAt){ t.doneAt = new Date().toISOString(); } }
     else { delete t.repeat; }
@@ -952,7 +1105,7 @@ $("fileIn").onchange = function(){
     try{
       var data = JSON.parse(r.result);
       if(data instanceof Array){
-        tasks = data; save(); render(); closeModal(mSet);
+        tasks = data; save(); loadCats(); render(); closeModal(mSet);
         alert("بازگردانی انجام شد.");
       }else{ alert("ساختار فایل درست نیست."); }
     }catch(e){ alert("فایل قابل خواندن نیست."); }
@@ -990,6 +1143,7 @@ $("btnBackupLater").onclick = function(){
 };
 
 load();
+loadCats();
 resetRecurring();
 render();
 checkBackup();
