@@ -46,6 +46,12 @@ header h1{font-size:17px;margin:0;margin-inline-start:auto;}
 #projBar span{flex:1;word-break:break-word;}
 #projBar button{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;}
 .empty .tip{display:block;font-size:12px;margin-top:10px;line-height:1.9;}
+.syncBox{border:1px solid var(--line);border-radius:12px;padding:10px;margin:4px 0 10px;background:#fffaf0;}
+.syncBox h3{margin:0 0 8px;color:var(--ink);font-weight:bold;}
+.syncBox input{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:13px;margin-bottom:6px;direction:ltr;text-align:left;}
+.syncBox label{font-size:12px;color:var(--muted);display:block;margin-bottom:2px;}
+.syncStat{font-size:12px;margin:2px 0 8px;line-height:1.7;}
+.syncStat.ok{color:#1e7d43;}.syncStat.err{color:#c0392b;}
 .ver{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 0;}
 .catTag{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin-inline-start:4px;background:#dfe9ec;color:#2f4f58;}
 .box select.catSel{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;margin-bottom:12px;}
@@ -175,12 +181,23 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <div class="modal" id="mSet">
 <div class="box">
 <h2>تنظیمات</h2>
+<div class="syncBox">
+<h3>&#9729; پشتیبان خودکار در GitHub</h3>
+<div class="syncStat" id="syncStat">خاموش</div>
+<label for="syncRepo">مخزن خصوصی (صاحب/نام)</label>
+<input type="text" id="syncRepo" placeholder="yousefi-nigc/todo-backup" autocomplete="off" spellcheck="false">
+<label for="syncToken">توکن دسترسی (Fine-grained token)</label>
+<input type="password" id="syncToken" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+<button type="button" id="btnSyncOn" class="primary">روشن کردن و پشتیبان‌گیری الان</button>
+<button type="button" id="btnSyncPull">بازگردانی از GitHub</button>
+<button type="button" id="btnSyncOff">خاموش کردن همگام‌سازی</button>
+</div>
 <button type="button" id="btnExport">دریافت پشتیبان (JSON)</button>
 <button type="button" id="btnImportPick">بازگردانی از فایل</button>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 <button type="button" id="btnClear">پاک کردن همه کارها</button>
 <button type="button" id="btnCloseSet" class="primary">بستن</button>
-<p class="ver">نسخه ۸ — ۲۴ آبان ۱۴۰۵</p>
+<p class="ver">نسخه ۹ — ۲۴ آبان ۱۴۰۵</p>
 </div>
 </div>
 
@@ -322,8 +339,12 @@ function loadCats(){
   if(curCat && cats.indexOf(curCat) < 0){ curCat = ""; }
   saveCats();
 }
+var lastCatsJson = null;
 function saveCats(){
-  try{ localStorage.setItem(CATS_KEY, JSON.stringify(cats)); localStorage.setItem(CUR_KEY, curCat); }catch(e){}
+  var cj = JSON.stringify(cats);
+  try{ localStorage.setItem(CATS_KEY, cj); localStorage.setItem(CUR_KEY, curCat); }catch(e){}
+  if(lastCatsJson !== null && cj !== lastCatsJson && typeof scheduleSync === "function"){ scheduleSync(); }
+  lastCatsJson = cj;
 }
 /* پنجره ساختن پروژه (داخل خود اپ؛ cb با نام پروژه یا null صدا زده می‌شود) */
 var catCb = null;
@@ -343,6 +364,7 @@ function finishCatName(ok){
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+  if(typeof scheduleSync === "function"){ scheduleSync(); }
 }
 function uid(){
   return Date.now().toString(36) + Math.floor(Math.random()*1000000).toString(36);
@@ -1242,7 +1264,13 @@ $("btnCal").onclick = function(){
 };
 
 /* ---------- تنظیمات و پشتیبان ---------- */
-$("btnSet").onclick = function(){ openModal(mSet); };
+$("btnSet").onclick = function(){
+  $("syncRepo").value = syncCfg ? syncCfg.repo : "";
+  $("syncToken").value = "";
+  $("syncToken").placeholder = syncCfg && syncCfg.token ? "توکن ذخیره شده است (برای تغییر، توکن جدید بنویسید)" : "github_pat_...";
+  showSyncState();
+  openModal(mSet);
+};
 $("btnCloseSet").onclick = function(){ closeModal(mSet); };
 
 function doExport(){
@@ -1304,6 +1332,138 @@ $("btnBackupLater").onclick = function(){
   checkBackup();
 };
 
+/* ---------- همگام‌سازی با مخزن خصوصی GitHub ---------- */
+var SYNC_KEY = "todo.sync";
+var SYNC_DELAY = 8000;
+var syncCfg = null, syncTimer = null, syncBusy = false, syncAgain = false;
+try{ syncCfg = JSON.parse(localStorage.getItem(SYNC_KEY) || "null"); }catch(e){ syncCfg = null; }
+function saveSyncCfg(){ try{ localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg)); }catch(e){} }
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g, "")))); }
+function apiUrl(){ return "https://api.github.com/repos/" + syncCfg.repo + "/contents/backup.json"; }
+function apiHeaders(){
+  return { "Authorization": "Bearer " + syncCfg.token, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+}
+function fmtTime(ms){
+  var d = new Date(ms);
+  var hm = faNum(d.getHours()) + ":" + (d.getMinutes() < 10 ? "۰" : "") + faNum(d.getMinutes());
+  var dj = g2d(d.getFullYear(), d.getMonth()+1, d.getDate());
+  return (dj === todayJdn() ? "امروز" : jdnLabel(dj, false)) + " ساعت " + hm;
+}
+function setSyncStat(msg, cls){
+  var el = $("syncStat");
+  el.textContent = msg;
+  el.className = "syncStat" + (cls ? " " + cls : "");
+}
+function showSyncState(){
+  if(!syncCfg || !syncCfg.on){ setSyncStat("خاموش — پشتیبان فقط روی همین گوشی است.", ""); return; }
+  if(syncCfg.err){ setSyncStat("\u26A0 " + syncCfg.err, "err"); return; }
+  setSyncStat(syncCfg.last ? "\u2714 روشن — آخرین پشتیبان: " + fmtTime(syncCfg.last) : "روشن — هنوز پشتیبانی ارسال نشده", "ok");
+}
+function errText(status){
+  if(status === 401){ return "توکن نامعتبر یا منقضی شده است."; }
+  if(status === 403){ return "توکن اجازه نوشتن در این مخزن را ندارد."; }
+  if(status === 404){ return "مخزن پیدا نشد یا توکن به آن دسترسی ندارد."; }
+  if(status === 0){ return "اینترنت در دسترس نیست؛ بعداً خودکار ارسال می‌شود."; }
+  return "خطا در ارسال (کد " + status + ").";
+}
+function scheduleSync(){
+  if(!syncCfg || !syncCfg.on){ return; }
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(function(){ pushSync(null); }, SYNC_DELAY);
+}
+function getRemote(cb){
+  fetch(apiUrl() + "?t=" + Date.now(), { headers: apiHeaders(), cache: "no-store" }).then(function(r){
+    if(r.status === 404){ cb(null, 404); return null; }
+    if(!r.ok){ cb(null, r.status); return null; }
+    return r.json().then(function(j){ cb(j, 200); });
+  })["catch"](function(){ cb(null, 0); });
+}
+function pushSync(done, retried){
+  if(!syncCfg || !syncCfg.on){ if(done){ done(false); } return; }
+  if(syncBusy){ syncAgain = true; if(done){ done(false); } return; }
+  syncBusy = true;
+  var payload = JSON.stringify({ app: "todo", version: 9, savedAt: new Date().toISOString(), cats: cats, tasks: tasks }, null, 1);
+  var body = { message: "پشتیبان خودکار " + new Date().toISOString(), content: b64enc(payload) };
+  if(syncCfg.sha){ body.sha = syncCfg.sha; }
+  fetch(apiUrl(), { method: "PUT", headers: apiHeaders(), body: JSON.stringify(body) }).then(function(r){
+    if(r.ok){
+      return r.json().then(function(j){
+        syncCfg.sha = j && j.content ? j.content.sha : null;
+        syncCfg.last = Date.now(); syncCfg.err = "";
+        saveSyncCfg(); finish(true);
+        try{ localStorage.setItem(BACKUP_KEY, String(Date.now())); }catch(e){}
+        checkBackup();
+      });
+    }
+    if((r.status === 409 || r.status === 422) && !retried){
+      /* شناسه نسخه قدیمی است؛ نسخه فعلی را بگیر و دوباره بفرست */
+      getRemote(function(j){
+        syncCfg.sha = j ? j.sha : null; saveSyncCfg();
+        syncBusy = false; pushSync(done, true);
+      });
+      return;
+    }
+    syncCfg.err = errText(r.status); saveSyncCfg(); finish(false);
+  })["catch"](function(){
+    syncCfg.err = errText(0); saveSyncCfg(); finish(false);
+  });
+  function finish(ok){
+    syncBusy = false; showSyncState();
+    if(done){ done(ok); }
+    if(syncAgain){ syncAgain = false; scheduleSync(); }
+  }
+}
+$("btnSyncOn").onclick = function(){
+  var repo = trim($("syncRepo").value).replace(/^https?:\/\/github\.com\//, "").replace(/\/+$/, "");
+  var token = trim($("syncToken").value) || (syncCfg && syncCfg.token) || "";
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ setSyncStat("نام مخزن را به شکل صاحب/نام بنویسید، مثلاً yousefi-nigc/todo-backup", "err"); return; }
+  if(!token){ setSyncStat("توکن را وارد کنید.", "err"); return; }
+  var changed = !syncCfg || syncCfg.repo !== repo;
+  syncCfg = { on: true, repo: repo, token: token, sha: changed ? null : syncCfg.sha, last: changed ? 0 : syncCfg.last, err: "" };
+  saveSyncCfg();
+  $("syncToken").value = "";
+  setSyncStat("در حال ارسال...", "");
+  getRemote(function(j, st){
+    if(st !== 200 && st !== 404){ syncCfg.err = errText(st); saveSyncCfg(); showSyncState(); return; }
+    syncCfg.sha = j ? j.sha : null; saveSyncCfg();
+    if(j && tasks.length === 0){
+      /* گوشی خالی است ولی در GitHub پشتیبان هست: به جای پاک کردن آن، پیشنهاد بازگردانی بده */
+      showSyncState();
+      if(confirm("گوشی کاری ندارد ولی در GitHub پشتیبان وجود دارد.\nبه جای ارسال لیست خالی، کارها از GitHub بازگردانی شوند؟")){ $("btnSyncPull").onclick(); }
+      return;
+    }
+    pushSync(function(ok){ if(ok){ flash("پشتیبان در GitHub ذخیره شد"); } });
+  });
+};
+$("btnSyncOff").onclick = function(){
+  if(!syncCfg){ showSyncState(); return; }
+  syncCfg = null; try{ localStorage.removeItem(SYNC_KEY); }catch(e){}
+  clearTimeout(syncTimer); showSyncState();
+  $("syncRepo").value = "";
+  flash("همگام‌سازی خاموش شد و توکن از گوشی پاک شد");
+};
+$("btnSyncPull").onclick = function(){
+  if(!syncCfg || !syncCfg.on){ setSyncStat("اول همگام‌سازی را با مخزن و توکن روشن کنید.", "err"); return; }
+  setSyncStat("در حال دریافت...", "");
+  getRemote(function(j, st){
+    if(!j){ syncCfg.err = st === 404 ? "هنوز پشتیبانی در مخزن نیست." : errText(st); saveSyncCfg(); showSyncState(); return; }
+    var data;
+    try{ data = JSON.parse(b64dec(j.content)); }catch(e){ setSyncStat("فایل پشتیبان قابل خواندن نیست.", "err"); return; }
+    var arr = data && data.tasks instanceof Array ? data.tasks : (data instanceof Array ? data : null);
+    if(!arr){ setSyncStat("ساختار فایل پشتیبان درست نیست.", "err"); return; }
+    var when = data.savedAt ? fmtTime(Date.parse(data.savedAt)) : "نامشخص";
+    if(!confirm("کارهای فعلی گوشی با پشتیبان GitHub جایگزین شوند؟\nتاریخ پشتیبان: " + when + "\nتعداد کارها: " + faNum(arr.length))){ showSyncState(); return; }
+    tasks = arr;
+    if(data.cats instanceof Array){ try{ localStorage.setItem(CATS_KEY, JSON.stringify(data.cats)); }catch(e){} }
+    syncCfg.sha = j.sha; saveSyncCfg();
+    try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+    loadCats(); render(); showSyncState(); closeModal(mSet);
+    flash("کارها از GitHub بازگردانی شد");
+  });
+};
+window.addEventListener("online", function(){ if(syncCfg && syncCfg.on && syncCfg.err){ pushSync(null); } });
+
 load();
 loadCats();
 resetRecurring();
@@ -1312,7 +1472,9 @@ checkBackup();
 /* وقتی اپ دوباره باز یا از پس‌زمینه برگردانده می‌شود، و هر دقیقه */
 document.addEventListener("visibilitychange", function(){
   if(!document.hidden && !drag && resetRecurring()){ render(); }
+  if(!document.hidden && syncCfg && syncCfg.on && syncCfg.err){ scheduleSync(); }
 });
+if(syncCfg && syncCfg.on && syncCfg.err){ scheduleSync(); }
 setInterval(function(){ if(!drag && resetRecurring()){ render(); } }, 60000);
 
 if("serviceWorker" in navigator){
