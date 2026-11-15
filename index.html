@@ -21,6 +21,16 @@ header h1{font-size:17px;margin:0;margin-inline-start:auto;}
 .bar select{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;}
 .add{background:var(--accent);color:#fff;border:0;border-radius:10px;width:46px;font-size:22px;cursor:pointer;}
 #searchBar{display:none;padding-top:0;}
+.more{background:#fffdf6;border:1px solid var(--line);border-radius:10px;width:40px;font-size:16px;cursor:pointer;color:var(--ink);}
+.more.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+#addOpts{display:none;margin:0 12px 4px;padding:10px;border:1px dashed var(--line);border-radius:12px;background:#fffaf0;}
+#addOpts.open{display:block;}
+.optRow{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
+.optRow:last-child{margin-bottom:0;}
+.optRow label{font-size:12px;color:var(--muted);width:56px;flex:none;}
+.optRow select{flex:1;min-width:0;padding:8px 4px;border:1px solid var(--line);border-radius:10px;background:#fffdf6;font:inherit;font-size:14px;}
+#newDuePick{display:none;}
+#newDuePick.open{display:flex;}
 #searchBar.open{display:flex;}
 .filters{display:flex;gap:8px;padding:0 12px;}
 .filters button{flex:1;padding:8px 2px;border:1px solid var(--line);background:#fffdf6;border-radius:20px;font:inherit;cursor:pointer;}
@@ -116,6 +126,29 @@ li{border-top:1px solid var(--line);padding:10px 12px;}
 <option value="A">A</option>
 <option value="C">C</option>
 </select>
+<button type="button" class="more" id="btnMore" aria-label="پروژه، سررسید و تکرار">&#9662;</button>
+</div>
+<div id="addOpts">
+<div class="optRow"><label for="newCat">پروژه</label><select id="newCat"></select></div>
+<div class="optRow"><label for="newDue">سررسید</label><select id="newDue">
+<option value="">بدون سررسید</option>
+<option value="0">امروز</option>
+<option value="1">فردا</option>
+<option value="2">پس‌فردا</option>
+<option value="7">هفته بعد</option>
+<option value="pick">تاریخ دیگر...</option>
+</select></div>
+<div class="optRow" id="newDuePick"><label></label>
+<select id="newDueD" aria-label="روز"></select>
+<select id="newDueM" aria-label="ماه"></select>
+<select id="newDueY" aria-label="سال"></select>
+</div>
+<div class="optRow"><label for="newRep">تکرار</label><select id="newRep">
+<option value="">بدون تکرار</option>
+<option value="daily">روزانه</option>
+<option value="weekly">هفتگی</option>
+<option value="monthly">ماهانه</option>
+</select></div>
 </div>
 <div class="bar" id="searchBar">
 <input type="search" id="searchTxt" placeholder="جستجو در کارها و ریزکارها...">
@@ -441,8 +474,18 @@ function addTask(){
   if(!t){ el.focus(); return; }
   tasks.unshift({ id: uid(), text: t, done: false, prio: $("newPrio").value,
     color: "", created: new Date().toISOString(), subs: [] });
-  if(curCat){ tasks[0].cat = curCat; }
+  var nt = tasks[0];
+  var optsOpen = $("addOpts").className.indexOf("open") >= 0;
+  var nc = optsOpen ? $("newCat").value : curCat;
+  if(nc && nc !== "__new"){ nt.cat = nc; }
+  if(optsOpen){
+    var dj = newDueJdn();
+    if(dj !== null){ nt.due = jdnToDue(dj); }
+    if($("newRep").value){ nt.repeat = $("newRep").value; }
+    $("newDue").value = ""; $("newDuePick").className = "optRow"; $("newRep").value = "";
+  }
   el.value = "";
+  if(curCat && nt.cat !== curCat){ showToast("کار در «" + (nt.cat || "بدون پروژه") + "» ثبت شد"); $("btnUndo").style.display = "none"; }
   save(); render(); el.focus();
 }
 function addSub(taskId, text){
@@ -641,6 +684,61 @@ function render(){
     listEl.appendChild(li);
   }
 }
+/* ---------- گزینه‌های کار جدید ---------- */
+function updatePlaceholder(){
+  var open = $("addOpts").className.indexOf("open") >= 0;
+  var c = open ? $("newCat").value : curCat;
+  if(c === "__new"){ c = ""; }
+  $("newTxt").placeholder = c ? "کار جدید در «" + c + "»..." : "کار جدید...";
+}
+function fillNewCat(){
+  var items = [["", "بدون پروژه"]];
+  for(var i=0;i<cats.length;i++){ items.push([cats[i], cats[i]]); }
+  items.push(["__new", "+ پروژه جدید..."]);
+  fillSelect($("newCat"), items, curCat);
+}
+function fillNewDuePick(jdn){
+  var j = d2j(jdn), cy = d2j(todayJdn()).jy, ys = [], ms = [], ds = [];
+  for(var y = cy; y <= cy + 5; y++){ ys.push([y, faNum(y).replace(/[٬,]/g, "")]); }
+  for(var m = 1; m <= 12; m++){ ms.push([m, J_MONTHS[m-1]]); }
+  for(var d = 1; d <= jMonthLen(j.jy, j.jm); d++){ ds.push([d, faNum(d)]); }
+  fillSelect($("newDueY"), ys, j.jy);
+  fillSelect($("newDueM"), ms, j.jm);
+  fillSelect($("newDueD"), ds, j.jd);
+}
+function newDueJdn(){
+  var v = $("newDue").value;
+  if(v === ""){ return null; }
+  if(v === "pick"){
+    var jy = +$("newDueY").value, jm = +$("newDueM").value;
+    return j2d(jy, jm, Math.min(+$("newDueD").value, jMonthLen(jy, jm)));
+  }
+  return todayJdn() + (+v);
+}
+$("btnMore").onclick = function(){
+  var box = $("addOpts");
+  if(box.className.indexOf("open") >= 0){ box.className = ""; this.className = "more"; this.innerHTML = "&#9662;"; }
+  else { fillNewCat(); box.className = "open"; this.className = "more on"; this.innerHTML = "&#9652;"; }
+  updatePlaceholder();
+};
+$("newCat").onchange = function(){
+  if(this.value === "__new"){
+    var n = addCatPrompt();
+    fillNewCat();
+    this.value = n || "";
+    renderCats();
+  }
+  updatePlaceholder();
+};
+$("newDue").onchange = function(){
+  if(this.value === "pick"){ fillNewDuePick(todayJdn()); $("newDuePick").className = "optRow open"; }
+  else { $("newDuePick").className = "optRow"; }
+};
+function newPickChanged(){ fillNewDuePick(newDueJdn()); }
+$("newDueY").onchange = newPickChanged;
+$("newDueM").onchange = newPickChanged;
+$("newDueD").onchange = newPickChanged;
+
 /* ---------- پروژه‌ها ---------- */
 function renderCats(){
   var box = $("cats");
@@ -671,7 +769,7 @@ function renderCats(){
     if(r.right > br.right){ box.scrollLeft += r.right - br.right + 12; }
     else if(r.left < br.left){ box.scrollLeft -= br.left - r.left + 12; }
   }
-  $("newTxt").placeholder = curCat ? "کار جدید در «" + curCat + "»..." : "کار جدید...";
+  updatePlaceholder();
 }
 $("cats").onclick = function(ev){
   var el = ev.target;
@@ -679,7 +777,7 @@ $("cats").onclick = function(ev){
   var x = el.getAttribute("data-x");
   if(x === "add"){
     var n = addCatPrompt();
-    if(n){ curCat = n; saveCats(); render(); }
+    if(n){ curCat = n; saveCats(); render(); if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); } }
     return;
   }
   if(x === "manage"){
@@ -691,6 +789,7 @@ $("cats").onclick = function(ev){
   if(el.hasAttribute("data-c")){
     curCat = el.getAttribute("data-c");
     saveCats(); render();
+    if($("addOpts").className.indexOf("open") >= 0){ fillNewCat(); updatePlaceholder(); }
   }
 };
 
